@@ -1,1 +1,2221 @@
-<h1>Github page</h1>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VIBE MUSIC MASTER DJ MIXES</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #e6e114;
+            --secondary-color: #B3B3B3;
+            --background-color: #1e003f;
+            --surface-color:#17002e80;
+            --text-color: #FFFFFF;
+            --text-color-muted: #A0A0A0;
+            --red-accent: #da0171;
+            --animation-speed: 0.4s;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+            padding-bottom: 130px; /* Espacio para el reproductor fijo */
+            padding-top: 60px; /* Espacio para la cabecera */
+        }
+
+        #app-container {
+            position: relative;
+        }
+
+        #player-background-blurred {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            filter: blur(20px) brightness(0.6);
+            transform: scale(1.1);
+            z-index: -1;
+            transition: background-image var(--animation-speed) ease-in-out;
+            background-image: url('https://iili.io/3DFDCBe.png'); /* Imagen de fondo por defecto */
+        }
+
+        /* --- ESTILOS PARA LA CABECERA, BOTÓN DE BÚSQUEDA Y CAMPO DE INPUT --- */
+        #app-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 60px; /* Altura de la cabecera */
+            background-color: #47008e;
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            transition: height var(--animation-speed) ease;
+        }
+
+        #app-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-color);
+            transition: opacity var(--animation-speed) ease;
+            flex-shrink: 0;
+            margin-right: 10px;
+        }
+
+        #search-container {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            justify-content: flex-end;
+        }
+
+        #search-input {
+            background-color: var(--surface-color);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            color: var(--text-color);
+            font-size: 16px;
+            margin-right: 10px;
+            width: 100%;
+            max-width: 250px;
+            transition: width var(--animation-speed) ease, opacity var(--animation-speed) ease;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #search-input:focus {
+            outline: none;
+            box-shadow: 0 0 5px var(--primary-color);
+        }
+
+        #search-button {
+            background: none;
+            border: none;
+            color: var(--text-color-muted);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            transition: color var(--animation-speed) ease;
+            flex-shrink: 0;
+        }
+
+        #search-button:hover {
+            color: var(--text-color);
+        }
+
+        #app-header.searching #app-title,
+        #app-header.searching #header-nav {
+            opacity: 0;
+            pointer-events: none;
+            width: 0;
+            overflow: hidden;
+            margin-right: 0;
+            margin-left: 0;
+        }
+
+        #app-header.searching #search-container #search-input {
+            opacity: 1;
+            pointer-events: auto;
+            width: calc(100% - 50px);
+            max-width: none;
+        }
+
+        #app-header.searching #search-button {
+            color: var(--primary-color);
+        }
+
+        /* --- NUEVOS ESTILOS DE NAVEGACIÓN EN HEADER --- */
+        #header-nav {
+            display: flex;
+            align-items: center;
+            flex-grow: 1;
+            margin-left: 10px;
+            transition: opacity var(--animation-speed) ease, width var(--animation-speed) ease, margin-left var(--animation-speed) ease;
+        }
+
+        #header-nav button {
+            background: none;
+            border: none;
+            color: var(--text-color-muted);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 5px 8px;
+            transition: color var(--animation-speed) ease;
+            white-space: nowrap;
+        }
+        #header-nav button i {
+            margin-right: 4px;
+            font-size: 14px;
+        }
+        #header-nav button.active {
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+        #header-nav button:hover:not(.active) {
+            color: var(--text-color);
+        }
+
+        .view {
+            padding: 20px;
+            display: none;
+            animation: fadeIn var(--animation-speed) ease-in-out;
+        }
+        .view.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .explore-button, .back-button, .action-button {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color var(--animation-speed) ease, transform var(--animation-speed) ease;
+            margin-bottom: 20px;
+            display: inline-block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .action-button {
+             background-color: var(--surface-color);
+             border: 1px solid var(--primary-color);
+        }
+
+        .explore-button:hover, .back-button:hover, .action-button:hover {
+            filter: brightness(1.1);
+            transform: scale(1.03);
+        }
+
+        #categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 15px;
+        }
+        .category-item {
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform var(--animation-speed) ease, box-shadow var(--animation-speed) ease;
+            aspect-ratio: 1 / 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            position: relative;
+        }
+        .category-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        .category-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .category-item .category-name {
+            position: relative;
+            z-index: 2;
+            background-color: rgba(0,0,0,0.5);
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-color);
+            pointer-events: none;
+        }
+        .category-item .category-name:empty {
+            display: none;
+        }
+
+        .view-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        /* --- ESTILOS PARA LISTAS DE CANCIONES (GENERAL) --- */
+        .song-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            transition: background-color var(--animation-speed) ease;
+            position: relative;
+        }
+        .song-item:hover {
+            background-color: rgba(255,255,255,0.05);
+        }
+        .song-item.active-song {
+            background-color: #47008e8a;
+            border-left: 3px solid var(--primary-color);
+            padding-left: 17px;
+        }
+        .song-item img.song-cover {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+        .song-info {
+            flex-grow: 1;
+            min-width: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .song-title {
+            font-size: 16px;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            width: 100%;
+        }
+        .song-artist {
+            font-size: 14px;
+            color: var(--text-color-muted);
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            width: 100%;
+            margin-top: 2px;
+        }
+        .song-duration {
+            font-size: 14px;
+            color: var(--text-color-muted);
+            margin-left: 10px;
+            flex-shrink: 0;
+        }
+        .song-item-controls {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            margin-left: 15px;
+        }
+        .song-item-controls button {
+            background: none;
+            border: none;
+            color: var(--secondary-color) ;
+            font-size: 20px;
+            margin-left: 10px;
+            cursor: pointer;
+            transition: color var(--animation-speed) ease, transform var(--animation-speed) ease;
+            padding: 5px;
+        }
+        .song-item-controls button:first-child {
+            margin-left: 0;
+        }
+        .song-item-controls button:hover {
+            color: var(--text-color);
+        }
+        .song-item-controls .remove-from-playlist-btn {
+            color: var(--red-accent);
+        }
+
+        /* --- ESTILOS DEL REPRODUCTOR FIJO --- */
+        #player-controls {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #47008e;
+            backdrop-filter: blur(0px);
+            padding: 10px 25px;
+            display: flex;
+            flex-direction: column;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0);
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .player-song-info-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            cursor: pointer; /* Para indicar que se puede abrir */
+        }
+        #player-song-cover {
+            width: 10px;
+            height: 10px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        #player-song-details {
+            flex-grow: 1;
+            min-width: 5;
+        }
+        #player-song-details div {
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        #player-song-title {
+            font-size: 20px;
+            font-weight: bold;
+        }
+        #player-song-artist {
+            font-size: 12px;
+            color: var(--text-color-muted);
+        }
+
+        .progress-container {
+            width: 100%;
+            height: 15px;
+            background-color: #404040;
+            border-radius: 3px;
+            cursor: pointer;
+            margin-bottom: 5px;
+            position: relative;
+        }
+        .progress-bar { /* Cambiado de ID a clase */
+            width: 0%;
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 3px;
+            transition: width 0.1s linear;
+        }
+
+        .time-display {
+            display: flex;
+            justify-content: space-between; /* Ajustado para separar tiempos */
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-color-muted);
+            margin-bottom: 8px;
+            width: 100%;
+        }
+        .current-time, .total-time { /* Cambiado de ID a clase */
+             padding: 0 5px;
+        }
+
+        .player-buttons {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .player-buttons button {
+            background: none;
+            border: none;
+            color: var(--secondary-color);
+            font-size: 22px;
+            cursor: pointer;
+            padding: 10px;
+            transition: color var(--animation-speed) ease, transform var(--animation-speed) ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .player-buttons button .skip-time {
+            font-size: 12px;
+            font-weight: bold;
+            margin: 0 4px;
+        }
+        .player-buttons button:hover {
+            color: var(--text-color);
+        }
+        .player-buttons button:disabled {
+            color: #555; /* Color for disabled buttons */
+            cursor: not-allowed;
+            transform: none;
+        }
+        .player-buttons .play-pause-btn {
+            font-size: 36px;
+            color: var(--text-color);
+        }
+        .player-buttons .play-pause-btn:hover {
+            transform: scale(1.1);
+        }
+        .player-buttons .repeat-button.active {
+            color: var(--primary-color);
+        }
+        /* --- FIN ESTILOS DEL REPRODUCTOR FIJO --- */
+
+        /* --- INICIO: ESTILOS DE LA INTERFAZ DE REPRODUCCIÓN (NOW PLAYING) --- */
+        #now-playing-view {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--background-color);
+            z-index: 1500;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            transform: translateY(100%);
+            transition: transform var(--animation-speed) ease-in-out;
+        }
+
+        #now-playing-view.active {
+            transform: translateY(0);
+        } 
+
+        #now-playing-header {
+            width: 100%;
+            display: flex;
+            justify-content: flex-start; /* Alinea el único botón a la izquierda */
+            align-items: center;
+        }
+
+        #now-playing-header .back-btn {
+             font-size: 24px;
+             background: none;
+             border: none;
+             color: var(--text-color-muted);
+             cursor: pointer;
+        }
+        
+        #now-playing-header .back-btn:hover {
+            color: var(--text-color);
+        }
+
+        #now-playing-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        #now-playing-cover {
+            width: 50vw;
+            height: 50vw;
+            max-width: 250px;
+            max-height: 250px;
+            object-fit: cover;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px #8000ff;
+            margin-bottom: 40px;
+        }
+
+        #now-playing-title {
+            font-size: 15px;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        #now-playing-artist {
+            font-size: 16px;
+            color: var(--text-color-muted);
+            margin-bottom: 25px;
+        }
+
+        #now-playing-view .progress-container {
+             height: 15px;
+             border-radius: 4px;
+             margin-bottom: 10px;
+        }
+
+        #now-playing-view .time-display {
+             font-size: 12px;
+             margin-bottom: 15px;
+        }
+        
+        #now-playing-view .player-buttons .play-pause-btn {
+            font-size: 50px;
+        }
+        
+        #now-playing-view .player-buttons button {
+            font-size: 28px;
+        }
+        /* --- FIN: ESTILOS DE LA INTERFAZ DE REPRODUCCIÓN --- */
+
+
+        /* --- ESTILOS PARA MODALES (GENERAL) --- */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: #2e005cde;
+            animation: fadeInModal 0.3s ease-out;
+            padding-top: 60px;
+        }
+        .modal-content {
+            background-color: var(--surface-color);
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 100%;
+            max-width: 500px;
+            border-radius: 8px;
+            text-align: center;
+            position: relative;
+            animation: slideInModal 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        @keyframes fadeInModal { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideInModal { from { transform: translateY(-30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .close-modal-btn {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-modal-btn:hover,
+        .close-modal-btn:focus {
+            color: var(--text-color);
+            text-decoration: none;
+        }
+        /* --- FIN ESTILOS PARA MODALES (GENERAL) --- */
+
+        /* Estilos para el contenido del modal de descripción */
+        #description-modal .modal-content img {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        #description-modal .modal-content h3 {
+            margin-bottom: 10px;
+            font-size: 20px;
+            color: var(--text-color);
+        }
+        #description-modal .modal-content h4 {
+            margin-bottom: 5px;
+            font-size: 18px;
+            color: var(--text-color);
+        }
+        #description-modal .modal-content p:not(.description-content) {
+            margin-bottom: 15px;
+            font-size: 15px;
+            color: var(--text-color-muted);
+        }
+        #description-modal .description-content {
+            margin-top: 10px;
+            font-size: 14px;
+            color: var(--text-color-muted);
+            text-align: left;
+            width: 100%;
+            overflow-wrap: break-word;
+        }
+        #description-modal .description-content h5 {
+            margin-top: 15px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-color);
+        }
+        #description-modal .chapters-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        #description-modal .chapters-list li {
+            margin-bottom: 8px;
+        }
+        #description-modal .chapter-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            cursor: pointer;
+            transition: color var(--animation-speed) ease;
+            display: block;
+            padding: 4px 0;
+        }
+        #description-modal .chapter-link:hover {
+            color: var(--text-color);
+            text-decoration: underline;
+        }
+
+        /* --- ESTILOS PARA "MIS PLAYLISTS" Y MODALES DE PLAYLIST --- */
+        #my-playlists-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .playlist-list-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background-color var(--animation-speed) ease;
+        }
+        .playlist-list-item:hover {
+            background-color: rgba(255,255,255,0.05);
+        }
+        .playlist-list-item-info {
+            display: flex;
+            align-items: center;
+        }
+        .playlist-list-item-info i {
+            font-size: 24px;
+            margin-right: 15px;
+            color: var(--primary-color);
+        }
+        .playlist-list-item-name {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .delete-playlist-btn {
+            background: none;
+            border: none;
+            color: var(--text-color-muted);
+            font-size: 20px;
+            cursor: pointer;
+            transition: color var(--animation-speed) ease;
+        }
+        .delete-playlist-btn:hover {
+            color: var(--red-accent);
+        }
+        
+        #create-playlist-modal input, #add-to-playlist-modal select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid var(--secondary-color);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            font-size: 16px;
+        }
+
+        #add-to-playlist-modal .playlist-selection-item {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+            cursor: pointer;
+            text-align: left;
+        }
+         #add-to-playlist-modal .playlist-selection-item:hover {
+             background-color: rgba(255,255,255,0.1);
+         }
+    </style>
+</head>
+<body>
+    <div id="app-container">
+        <div id="player-background-blurred"></div>
+
+        <header id="app-header">
+            <div id="app-title"></div>
+              <nav id="header-nav">
+                  <button id="nav-categories-btn" class="active"><i class="fas fa-compass"></i> Explorar</button>
+                  <button id="nav-my-playlists-btn"><i class="fas fa-music"></i> Mis Playlists</button>
+              </nav>
+            <div id="search-container">
+                <input type="text" id="search-input" placeholder="Busca Tu Mix O Cancion Favorita">
+                <button id="search-button" title="Buscar">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </header>
+
+        <main id="main-content">
+            <!-- VISTA DE CATEGORÍAS -->
+            <div id="categories-view" class="view active">
+                <h2 class="view-title">Explorar Mixes</h2>
+                <div id="categories-grid"></div>
+            </div>
+
+            <!-- VISTA DE PLAYLIST DE CATEGORÍA -->
+            <div id="playlist-view" class="view">
+                <button class="back-button" id="back-to-categories-btn"><i class="fas fa-arrow-left"></i> Volver a Explorar</button>
+                <h2 id="playlist-title" class="view-title"></h2>
+                <div id="songs-list"></div>
+            </div>
+
+            <!-- VISTA DE "MIS PLAYLISTS" -->
+            <div id="my-playlists-view" class="view">
+                 <div id="my-playlists-header">
+                    <h2 class="view-title">Mis Playlists</h2>
+                    <button class="action-button" id="create-playlist-btn"><i class="fas fa-plus"></i> Crear Nueva Playlist</button>
+                </div>
+                <div id="user-playlists-list"></div>
+            </div>
+            
+            <!-- VISTA DE UNA PLAYLIST DE USUARIO -->
+            <div id="user-playlist-view" class="view">
+                <button class="back-button" id="back-to-my-playlists-btn"><i class="fas fa-arrow-left"></i> Volver a Mis Playlists</button>
+                <h2 id="user-playlist-title" class="view-title"></h2>
+                <div id="user-playlist-songs-list"></div>
+            </div>
+
+            <!-- VISTA DE RESULTADOS DE BÚSQUEDA -->
+            <div id="search-results-view" class="view">
+                <button class="back-button" id="back-from-search-btn"><i class="fas fa-arrow-left"></i> Volver</button>
+                <h2 id="search-results-title" class="view-title">Resultados de Búsqueda</h2>
+                <div id="search-results-list"></div>
+            </div>
+
+        </main>
+        
+        <!-- INICIO: Interfaz de Reproducción (Now Playing) -->
+        <div id="now-playing-view">
+             <header id="now-playing-header">
+                 <button id="np-back-btn" class="back-btn"><i class="fas fa-chevron-down"></i></button>
+             </header>
+            
+             <div id="now-playing-content">
+                 <img src="https://iili.io/3DFDCBe.png" alt="Cover" id="now-playing-cover">
+                 <h2 id="now-playing-title">Ningún Mix</h2>
+                 <p id="now-playing-artist">Selecciona Un Mix</p>
+              </div>
+
+             <div class="player-controls-wrapper" style="width:100%;">
+                  <div class="progress-container" id="np-progress-clickable-area">
+                      <div class="progress-bar" id="np-progress-bar"></div>
+                  </div>
+                  <div class="time-display">
+                      <span class="current-time" id="np-current-time">0:00</span>
+                      <span class="total-time" id="np-total-time">0:00</span>
+                  </div>
+                  <div class="player-buttons">
+                      <button class="repeat-button" title="Repetir Canción"><i class="fas fa-redo"></i></button>
+                      <button class="prev-btn-15s" title="-15s"><i class="fas fa-backward"></i><span class="skip-time">15</span></button>
+                      <button class="play-pause-btn"><i class="fas fa-play"></i></button>
+                      <button class="next-btn-15s" title="+15s"><span class="skip-time">15</span><i class="fas fa-forward"></i></button>
+                      <button class="info-btn" title="Ver información"><i class="fas fa-info-circle"></i></button>
+                  </div>
+             </div>
+        </div>
+        <!-- FIN: Interfaz de Reproducción (Now Playing) -->
+
+
+        <div id="player-controls">
+            <div class="player-song-info-container">
+                <img src="https://iili.io/3DFDCBe.png" alt="Cover" id="player-song-cover">
+                <div id="player-song-details">
+                    <div id="player-song-title">Ningún Mix</div>
+                    <div id="player-song-artist">Selecciona Un Mix</div>
+                </div>
+            </div>
+
+            <div class="progress-container" id="player-progress-clickable-area">
+                <div class="progress-bar" id="player-progress-bar"></div>
+            </div>
+        </div>
+
+        <audio id="audio-player"></audio>
+
+        <!-- MODALES -->
+        <div id="description-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal-btn" data-modal="description-modal">×</span>
+                <h3>Cover, Title, Artists</Title></h3>
+                <img src="" alt="Cover de la Canción" id="modal-song-cover">
+                <h4 id="modal-song-title"></h4>
+                <p id="modal-song-artist"></p>
+                <div class="description-content" id="description-text"></div>
+            </div>
+        </div>
+        <div id="create-playlist-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal-btn" data-modal="create-playlist-modal">×</span>
+                <h3>Crear Nueva Playlist</h3>
+                <input type="text" id="new-playlist-name" placeholder="Nombre de tu playlist">
+                <button class="action-button" id="confirm-create-playlist-btn">Crear</button>
+            </div>
+        </div>
+        <div id="add-to-playlist-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-modal-btn" data-modal="add-to-playlist-modal">×</span>
+                <h3>Añadir a...</h3>
+                <div id="playlist-selection-list" style="width:100%; max-height: 50vh; overflow-y: auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- BASE DE DATOS DE MÚSICA ---
+        const musicDatabase = [
+            { 
+                name: "",
+                cover: 'https://iili.io/FfUS0t1.md.png',
+                songs: [
+                    
+                
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+{ id: 'NewMixes46', title: "PURA CANDELA 🔥 PARTY MIX  Merengue, Bachata y Salsa para 2025", artist: "Dj Trepasito Rd", duration: "1:18:46", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/75713f69-ce6b-4f42-aaf7-e17b0e544f18/audio/c9982e2c-57e7-4319-9584-fe5b66851264/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FsHYzmX.md.png', description: `
+
+Merengue
+1 Los Hermanos Rosario - Esa Muchacha
+2 Benny Sadel - Amor Amor
+3 Olga Tañon - Es Mentiroso
+4 Miriam Cruz - La Loba
+5 No Voy a Llorar - Rubby Perez
+6 Tu Vas A Volar - Rubby Perez
+7 Manny Cruz - Oye
+8 Juan Luis Guerra - Me Enamoro De Ella
+9 Alex-Bueno - La Radio
+
+Bachata
+10 Aventura - Desprecio
+11 Monchy Y Alexandra - Hoja En Blanco
+12 Yoskar Sarante - Entre Tu Amor Y Mi Dolor
+13 Raulin Rodriguez - Si Yo Pudiera
+14 Anthony Santos - Voy Pa Ya En Vivo
+15 Zacarias Ferreira - Se Marcho El Amor
+16 Decidí - Frank Reyes
+17 Yoskar Sarante - Vale La Pena
+18 Debate De 4 - Romeo Santos X VARIOS
+19 Hector Acosta El Torito - No Morire
+
+Salsa
+20 Willie Rosario - Anuncio Clasificado
+21 Salsa kids - Dejame un beso
+22 Int. Sabor - Te Va Doler
+23 Grupo Niche - Nuestro Sueño
+24 Cuco Valoy - Amor Para Mi
+25 Frankie Ruiz - Bailando
+26 Chiquito Team Band - Mi Amor Es Pobre Version Salsa
+27 Frankie Ruiz - Mi Libertad
+28 Marc Anthony - Nadie Como Ella
+29 Yiyo Sarante - 2 Veces
+`},
+
+
+
+
+{ id: 'NewMixes45', title: "🎶 Mix de Reggaeton con los Éxitos del Momento 🎶 Karol G, Anuel AA, J Balvin, Bad Bunny y Jowell y Randy", artist: "Dj Trepasito Rd", duration: "14:20", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/538d73f7-836a-42b3-a02a-b34f9f9198a5/audio/45766dc7-dd20-4ddc-8b94-08af1b8f60f2/default_tc.mp3?nocache', coverUrl: 'https://iili.io/F6cp1VV.md.png', description: `1) KAROL G - LATINA FOREVA
+2) Blessd X Anuel AA - Te Canto Bajito
+3) DJ Snake X J Balvin - Noventa
+4) Jowell & Randy - X-100
+5) Bad Bunny Ft. Jowell & Randy, Nengo Flow - Safaera
+6) Bad Bunny - Voy A Llevarte A PR
+7) Juanka - 2 Pa 1
+8) Floyymenor X Lewis Somes - My Love
+
+`},
+
+
+
+
+{ id: 'NewMixes44', title: "DANCEHALL MIX 2025 🚀 Pure Fire for Dancing! 🔥", artist: "Dj Trepasito Rd", duration: "16:08", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/f93494be-0623-4895-ae50-62dd1bcc0eb8/audio/1935cbf0-e1a4-489c-b39c-d640ee577340/default_tc.mp3?nocache', coverUrl: 'https://iili.io/F4SUsXR.md.png', description: `
+1) Like Glue - Sean Paul
+2) Bunny General - Full Up A Class
+3) Vybz Cartel - Fever
+4) Buju Banton - Batty Rider
+5) Mr Vegas - Head High
+6) 100 - Chivv ft. Jandro & Jonna Fraser - Banana
+7) Super Cat - Nuff Man Dead`},
+
+
+
+
+                    { id: 'NewMixes43', title: "Back to the 80s! 🔙 The BEST Freestyle Mix You NEED to Hear 🎧🔥", artist: "Dj Trepasito Rd", duration: "22:12", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/acdb9a7b-17c8-4526-b1cf-5f18794ac150/audio/7089d04c-cd2b-49d0-8ff9-aec904bc066c/default_tc.mp3?nocache', coverUrl: 'https://iili.io/F4k2ust.md.png', description: `
+                    
+1) Show Me (Hearthrob Mix) - The Cover Girls
+2) Forget Me Nots - Remastered - Patrice Rushen
+3) I Wonder If I Take You Home (with Full Force) - Lisa Lisa & Cult Jam
+4) For Tonight - Club Mix - Nancy Martinez
+5) Summertime, Summertime - Nocera.mp3
+6) Do You Wanna Dance - Club Dance - Bad Boy Orchestra
+7) Come Get My Love - TKA
+                    
+                    `},
+
+
+
+                
+
+                    { id: 'NewMixes42', title: "¡Pura Bachata! ❤️‍🔥 Mix Romántico para Enamorar 2025 🎶 #22", artist: "DJ Trepasito Rd", duration: "29:42", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/567da419-b1c9-4472-84a1-bf906366f73f/audio/fe3d330a-79c3-423f-8ad3-68f6f127ca20/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FrzXwrb.md.png', 
+                      description: `1) Aventura - La Tormenta
+2) Joe Veras - Tu Excusa
+3) Prince Royce - La Carretera
+4) Hector Acosta El Torito - Como Te Olvido
+5) Natti Natasha - Quien sabe
+6) La Bella Y La Bestia - Romeo Santos
+7) Elvis Martinez - En Bancarota
+8) Aventura - Por Un Beso
+9) El Hombre De Tu Vida - Joe Veras
+10) Mujeres Que Matan - Joe Veras
+11) Aqui Estoy - Luis Miguel Del Amargue`},
+
+                { id: 'NewMixes41', title: "¡La mejor mezcla de Dembow para tu fiesta en 2025!", artist: "Dj Trepasito Rd", duration: "1:10:55", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/1e761f8f-9c6d-4ad5-809f-b9e66b1856a9/audio/158022df-e887-40c3-ba2f-184e36e974d0/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FUfNdF9.md.jpg', description: `
+1) Miami - Tokischa
+2) El Chuape - Te Subi Lo Vidrio
+3) Medley En Vivo - Rochy RD
+4) Tokischa & Bulin 47 - CELOS
+5) El Alfa Jefe Ft La Manta Anonimus Paramba Neno Man La Kikada - Lo Tenemo Remix
+6) Veneno En El Vaso Fom - Yomel Ft Passino
+7) La Nueva Escuela - Durisimo
+8) Haraca Kiko X Shadow Blow - Axi90
+9) El Alfa - Paketum
+10) Yaisel LM - Ma Buena
+11) El Mayor - Choki Choki
+12) Lirico En La Casa Ft Los Del Millero & Bulin 47 - Pikilao Remix 
+13) Liro Shaq - Dale Paya
+14) El Alfa - Gogo Dance 
+15) Lirico En la Casa - Brum Brum
+16) Karol G - Un Gatito  Me Llamo
+17) Braulio Fogon - Travieso
+18) El Alfa - El Mananero
+19) El Alfa ft Darell X Noriel - 4K 
+20) El Alfa Ft La Tukiti - Chaki Chan
+21) La Muñeca Del Flow X Dilon Baby - Que Muñeca
+22) Que la Choke - Rochy RD
+23) El Cherry Scom - Cocolo Cocolo
+24) Party - Chimbala Ft El Fother
+25) Tivi Gunz - Frename En El Party Sin Panty
+26) Yoan Retro x Ariadne Arana  - Bailalo Rocky
+27) Ojos Ferrari - Karol G Ft Justin Q. X Angel Dior
+28) El Alfa X Varios - La Manteca De Cacao
+29) Gran Memin - La Piri
+30) Mestizo Is Back - Dembere
+31) Donaty X Lomiiel X Papera - Que Linda
+32) Donaty  - Eso E
+33) El Alfa - El Baile Del Dinero
+34) Dame De To - El Cherry S X El Super N X Yopo La G
+35) Papera, El Cherry Scom - Modo Lobo
+36) Angel Dior Ft. Antony Singer - Me La Sube
+37) Chimbala, El Alfa El Jefe - ME LA SUBE
+38) Yaisel LM, El Kable Ft. Bulova - Subete En El Bus
+39) Shelow Shaq - Ta De Pinga
+40) Donaty - To No Morimo
+41) Arlene Mc - Bumper
+42) Arlene MC -  Preciosa
+43) Arlene Mc - Mamazota
+44) Crazy Design - Guanguan
+45) El Alfa, Varios - Chupable
+46) Chimbala Ft. Lapiz Conciente - Malona
+47) Braulio Fogon X El Alfa x Donaty - Muevelo Muñeca
+48) Yailin la Mas Viral - Todos Mienten
+49) Yailin La Mas Viral - Silla
+50) Bellakath X La Mas Doll - Clito`
+                    
+                },
+                { id: 'NewMixes40', title: "Diva's Delight: Hip Hop Mix #2 (Female Edition)", artist: "Dj Trepasito Rd", duration: "14:18", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/de9ad022-9391-4b7b-8b66-9bfc5a807d3f/audio/c50103b8-95cb-441c-8873-5ef71bcd1af8/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fk8nKTN.png', description: ""},
+                { id: 'NewMixes39', title: "Salsa Romántica Mix #14 🔥 Lo Mejor para Bailar en Pareja", artist: "Dj Trepasito Rd", duration: "23:15", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/3268604f-e0f9-44ec-80a9-99c018778e00/audio/9fe67ecc-5e45-40bb-b767-cebf3556710b/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fem7rfn.png', 
+                      description: ``},
+                { id: 'NewMixes38', title: "OutSide Latin Party Mix 2025 Salsa Bachata Merengue Reggaeton Dembow Latin Trap Clean", artist: "Dj Trepasito Rd", duration: "2:00:10", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/538b67d7-0661-4076-9b0c-468078720749/audio/2ec40736-551a-4ae5-a24a-4501a653bce9/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FjAwCpR.png', 
+                      description: ``},
+                { id: 'NewMixes37', title: "Urbano y Dembow Mini Mix 66", artist: "Dj Trepasito Rd", duration: "10:30", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/50e6f86b-0b0b-4e66-8190-7cae7ca4e7cc/audio/3dbe734f-cd50-41f6-ab50-ecd36211ca1c/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fj2r1J1.png', description: ``},
+                { id: 'NewMixes36', title: "Party Mix - Top 40, Afro House, Edm, Guaracha", artist: "Dj Johmar El Rey", duration: "17:59", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/9ca0f976-7d29-4c8c-ac80-fe8fb00fdee9/audio/dc8539cf-74fc-4ebc-a293-97758bcbfa01/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FXEICzJ.md.png', description: ""},
+                { id: 'NewMixes35', title: "Reggaeton Mix #32 - Clasicos y Nuevos 2025", artist: "Dj Trepasito Rd", duration: "25:48", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/6636511b-46c3-41ca-889f-fbde0e1752a6/audio/ff344ce7-2383-4eca-bfdb-d598de964b7b/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FVm5214.md.png', description: ""},
+                { id: 'NewMixes34', title: "Dembow Mix 65 - Ladies Edition", artist: "Dj Trepasito Rd", duration: "43:14", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/9c6c9a02-c79a-4877-86fc-5d47b6788784/audio/5b5c18f6-fb9b-46cf-8000-e03cbdcd3263/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FVPxc7I.png', description: ""},
+                { id: 'NewMixes33', title: "Salsa Rumbera Mix 13", artist: "Dj Trepasito Rd", duration: "31:54", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/40ef9859-06c2-4a1c-9475-66e71f6e20b0/audio/625178cf-baee-46eb-9fd0-6217e043b247/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FMEddZX.md.png', description: ""},
+                { id: 'NewMixes32', title: "Bachata Mix 21 - Con Sentimiento 2025", artist: "Dj Trepasito Rd", duration: "22:32", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/f8b293b9-1fe2-4e7d-8c82-bf4afe4de6cc/audio/a06efc62-c760-4e3b-89b8-3a2cf267c632/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FMYS3wG.md.png', description: ""},
+                { id: 'NewMixes31', title: "Tropicoqueta Mix - Karol G", artist: "Dj Trepasito Rd", duration: "33:15", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/7368bd2e-66af-4b49-a7d9-e42f192996eb/audio/b448a950-705d-4b1b-887f-727312e72671/default_tc.mp3?nocache', coverUrl: 'https://iili.io/F0e8Jnt.png', description: ""},
+                { id: 'NewMixes30', title: "Hip Hop Mix Clean", artist: "Dj Trepasito Rd", duration: "22:31", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/b7c1e9da-cbea-4fcf-bfd1-a76da99b8e66/audio/50978bdd-8170-4784-98ac-43a0ab4ca930/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FaOvYsn.md.jpg', description: ""},
+                { id: 'NewMixes01', title: "BACHATA MIX 1 Para Beber y Bailar 2025", artist: "Dj Johmar El Rey", duration: "45:41", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/975f8f25-a0f1-47d3-a920-db9b72f0bdad/audio/e2eac305-8dfb-43b5-8c39-41ef1a50c721/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnTi4qJ.md.jpg', description: ""},
+                    { id: 'NewMixes02', title: "Clean Reggaeton Mix 2025", artist: "Dj Machado Flow", duration: "23:00", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/e9b2ba8a-a94d-4048-8db5-79b099da398d/audio/861f46f4-9dab-4e81-8d43-52e7d2018aef/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},
+                    { id: 'NewMixes03', title: "MAMBO DE CALLE ACELERAO OMEGA VS SUJETO", artist: "Dj Master Nj", duration: "22:05", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/fec2906a-0a33-4f51-83d8-77e5533e4ac7/audio/cebdd6e6-0fda-4b0a-9055-77ba3a68a176/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FoUVsix.md.jpg', description: ""},
+                    { id: 'NewMixes04', title: "Bachata Mix", artist: "Dj Axelcito", duration: "13:42", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/2f2660a6-8789-4526-b9b7-7cce5b54dce4/audio/9bf987a5-3df7-430a-961d-316cfd65f05f/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FoCWqqF.jpg', description: ""},
+                    { id: 'NewMixes05', title: "Dembow Mix", artist: "DJ Johmar El Rey", duration: "30:26", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/3e75ffa5-a292-4830-9244-032d4190788d/audio/5d11d397-d4f2-4410-b6fe-33d93497bfb9/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnTi4qJ.md.jpg', description: ""},
+                    { id: 'NewMixes06', title: "Reggaeton Mix 31 (Dirty) 2025", artist: "Dj Trepasito Rd", duration: "17:30", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/7a210956-3fa8-49a6-a65b-4908231ea322/audio/2e2838f0-2c93-43f4-97fe-c76954a66fb2/default_tc.mp3?nocache', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+                    { id: 'NewMixes07', title: "Bad Bunny - DeBÍ TiRAR MáS FOToS - Album Mix 2025", artist: "Dj Johmar El Rey", duration: "51:52", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/f5f5eb41-582e-46a2-94e3-0ecb963e2b5b/audio/dab3e7b0-2453-4a56-9ae2-3795ffc1147c/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnaS6Be.png', description: ""},
+{ id: 'NewMixes08', title: "Salsa Mix", artist: "Dj Machado Flow", duration: "34:42", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/02c59331-a30e-42fa-8017-4a7c8b94935e/audio/00e55f49-cfe0-4dc3-9e72-4c885b168334/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},
+{ id: 'NewMixes09', title: "Merengue Mix Vol.2", artist: "Dj Machado Flow", duration: "24:27", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/d92849c6-89fc-42ca-9b58-07c3709a7fe9/audio/b3d34316-bf05-4539-9556-3e3f0cab6ca3/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},
+{ id: 'NewMixes10', title: "Bachata Vol.3", artist: "Dj Machado Flow", duration: "26:38", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/8afa0d9b-92f6-42fb-a02d-2609accd90d4/audio/fbfebf97-4155-4405-97b2-e333bf795bd2/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},
+{ id: 'NewMixes11', title: "Bachata + Tipico Mix", artist: "DJ Johmar El Rey", duration: "28:45", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/361e8938-261f-48bf-9eea-29d3714a1802/audio/628cbe36-18cb-4940-8ae5-6fd6292584bb/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnTi4qJ.jpg', description: ""},
+{ id: 'NewMixes12', title: "Party Mix Summer Dembow & Merengue 2025", artist: "Dj Trepasito Rd", duration: "47:55", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/6ab8f415-0638-4a7b-a5b3-c905aa056427/audio/a57dfe88-b969-4a70-9a9a-276c9e5057ca/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FCwRQ1e.md.png', description: ""},
+{ id: 'NewMixes13', title: "Reggaeton Mix 30 - Nostalgico 2025 Jueves Clasicos", artist: "Dj Trepasito Rd", duration: "16:25", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/2714afe4-6c3d-4748-b016-6a0d7b0b8156/audio/18d3219c-8ad1-4e18-b222-990d062097dc/default_tc.mp3?nocache', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+{ id: 'NewMixes14', title: "Dembow Mix 64: Lo Más Pegado del Momento | Desacátate con el #64 🔥💃", artist: "Dj Trepasito Rd", duration: "14:08", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/2f4f2504-4e4c-4960-a2db-ac6e815b9c6c/audio/71e43bbf-9c1e-4950-9b84-697f490d1e78/default_tc.mp3', coverUrl: 'https://iili.io/F2CdVe9.jpg', description: ""},
+{ id: 'NewMixes15', title: "Old School Party Mix - Reggaeton, Moombahtom, Dembow, Merengue, Top 40", artist: "Dj Trepasito Rd", duration: "01:18:30", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/99bd6461-763f-483b-9de0-72fed9d0ead6/audio/2662ceec-7975-424b-8c8c-b0f8200519cc/default_tc.mp3', coverUrl: 'https://iili.io/F2J2XtI.md.png', description: ""},
+{ id: 'NewMixes16', title: "Reggaeton Mix 29 (Clean)", artist: "Dj Trepasito Rd", duration: "11:18", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/0756b293-8794-4085-9dbb-732ad9c2cecb/audio/844ab808-6114-4182-9170-b479ba22d334/default_tc.mp3', coverUrl: 'https://iili.io/F9q4HxI.png', description: ""},
+{ id: 'NewMixes17', title: "Bachata Mix 20 (Clasicas) 2025", artist: "Dj Trepasito Rd", duration: "22:45", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/d8af5957-8bb4-4d44-b654-34752a4f43fe/audio/2a9c8216-ab1d-40af-8886-7f91dcadea66/default_tc.mp3', coverUrl: 'https://iili.io/3yqiuQj.md.png', description: ""},
+{ id: 'NewMixes18', title: "Dembow Mix 63 (Dirty) Variado 2025", artist: "Dj Trepasito Rd", duration: "22:38", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/0e63c907-27f4-4d90-b773-f68ef9827410/audio/dabf3f58-38ca-4c6e-ba31-63c4b47b5e1d/default_tc.mp3', coverUrl: 'https://iili.io/3pHHqg4.md.png', description: "" },
+{ id: 'NewMixes19', title: "Merengue Mix 10 Mambo X Tipico (Bailable) 2025", artist: "Dj Trepasito Rd", duration: "22:35", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/485c5d59-2544-495a-9672-f23c8e3647dc/audio/fb293aa9-1b08-4a45-9d12-7b6fbad9e61d/default_tc.mp3', coverUrl: 'https://iili.io/3b7YIFn.md.png', description: "" },
+{ id: 'NewMixes20', title: "Bachata Mix 19 (Clasicas) 2025", artist: "Dj Trepasito Rd", duration: "20:24", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/b286eee1-456c-4779-a303-c2d9f278ea56/audio/452ff14c-c1fb-4199-8c96-9f81c145674f/default_tc.mp3', coverUrl: 'https://iili.io/3ZeE3Xe.md.png', description: "" },
+{ id: 'NewMixes21', title: "Reggaeton Mix 28 (Old School) ThrowBacks 2025", artist: "Dj Trepasito Rd", duration: "11:52", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/20e0c61b-1b1f-413c-98ac-d5216cbe6727/audio/4d85d669-5e95-4265-92b2-83ed8501900d/default_tc.mp3', coverUrl: 'https://iili.io/3ZXsN1V.png', description: "" },
+{ id: 'NewMixes22', title: "Merengue Mix 9 (Clasicos)", artist: "Dj Trepasito Rd", duration: "24:45", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/f9e70bc3-57a8-4ef7-96d8-8a7c2a2c32e2/audio/4d44861c-333a-4815-bbf0-a9d96e20c04e/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+{ id: 'NewMixes23', title: "Latin Party Summer Mix 2025 Vol.4", artist: "Dj Trepasito Rd", duration: "01:07:48", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/b80891a8-f086-4ada-98c3-6f5f42a2ded3/audio/37b8ef3c-4e96-4a43-95eb-92b06b4c80a7/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+{ id: 'NewMixes24', title: "Dembow Mix 61 (Dirty) (Throwbacks)", artist: "Dj Trepasito Rd", duration: "18:30", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/87f7e558-16fd-42ac-a54a-11913eaf8ff9/audio/2e6d422a-a7a5-472f-aef7-86768d5931e4/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+{ id: 'NewMixes25', title: "Reggaeton Mix 27 (Dirty)", artist: "Dj Trepasito Rd", duration: "15:28", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/2662cee7-c260-431c-88eb-d64b3c8f1b7a/audio/49ea3dbf-69bf-4315-a3ff-c9870be2d731/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+{ id: 'NewMixes26', title: "Salsa Mix 11 (Romanticas)", artist: "Dj Trepasito Rd", duration: "26:52", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/fba5c7c0-1fae-442d-94d1-b79947405bce/audio/53f4428c-37c2-4510-8bc9-1bd9af15969a/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+{ id: 'NewMixes27', title: "Dembow Mix 60 (Dirty) Estrenos Abril 2025", artist: "Dj Trepasito Rd", duration: "22:28", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/4d9c2d1c-dca8-494c-8350-e8d192ad78ca/audio/de447e18-c88c-4081-bd1a-9650f8190296/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+{ id: 'NewMixes28', title: "Bachata Mix 18", artist: "Dj Trepasito Rd", duration: "22:00", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/c241f0d0-e94b-47f5-9a7e-ba127c27a884/audio/576ac8a1-379a-40fb-97f4-6aa98d2d1132/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+{ id: 'NewMixes29', title: "Bachata Mix 11 (2)", artist: "Dj Trepasito Rd", duration: "27:06", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/5697c08f-43b7-4638-9436-fa401234e36c/audio/0c7da210-baa5-4931-ac0a-68d1efbedce7/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+
+
+
+
+                ]
+            },
+
+
+
+ { 
+                name: "New Original Music",
+                cover: 'https://iili.io/3DFDCBe.png',
+                songs: [
+                    
+
+
+
+
+
+{ id: 'NewOriginalMusic18', title: "La Bella y La Bestia", artist: "Romeo Santos", duration: "03:57", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/e2e5d778-9dc0-49ca-9ece-c7c36bebe3e5/audio/36b3ba40-360d-4e25-81b6-d5267551107a/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FlLnrYl.md.jpg', description: ""},
+
+{ id: 'NewOriginalMusic17', title: "La Diabla", artist: "Romeo Santos", duration: "03:59", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/514a4758-01b5-459e-8c8d-844443508d8d/audio/04effedf-3ffb-4ba1-a449-40a362c29c51/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FlLnrYl.md.jpg', description: ""},
+
+{ id: 'NewOriginalMusic16', title: "Corazon De Acero", artist: "Yiyo Sarante", duration: "03:45", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/fa914ab9-637a-4f0e-9624-ac6d9b6b5f92/audio/0edae4ca-5468-4cbf-ab84-3be3ed338586/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FlLxoKb.md.png', description: ""},
+
+{ id: 'NewOriginalMusic15', title: "OHNANA", artist: "Kapo", duration: "02:36", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/95f2c55f-8756-4156-b940-1885abf17b59/audio/135da2bb-8d4b-426c-a994-ef37cb105f08/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FlLxMRp.md.jpg', description: ""},
+
+{ id: 'NewOriginalMusic14', title: "Si Antes Te Hubiera Conocido", artist: "Karol G", duration: "03:15", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/11a143e4-ec98-4155-af94-3606c4cc4d7a/audio/79fe3c64-e975-4a54-8170-84689549155d/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FlLxlfa.md.jpg', description: ""},
+
+{ id: 'NewOriginalMusic13', title: "La Boda", artist: "Aventura", duration: "04:49", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/93042167-f175-40f0-8d4b-438571432fde/audio/ed3da2d2-02c7-4af7-81a1-726188f9defb/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FlLxYWF.md.jpg', description: ""},
+
+{ id: 'NewOriginalMusic12', title: "LATINA FOREVA", artist: "Karol G", duration: "02:39", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/f3e0f9a7-c23d-4430-b09d-f11a0b53794b/audio/695e9e63-c613-4071-b225-f02a26a2ec23/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FFOpoSR.md.jpg', description: ""},
+
+{ id: 'NewOriginalMusic11', title: "Que Pasaria", artist: "Rauw Alejandro, Bad Bunny", duration: "03:11", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/8ddfcde4-ad06-4f9a-9fcb-680791884a2f/audio/09f701f0-4f64-46ab-9bf9-6c834211b969/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FlLx7x1.md.jpg', description: ""},
+
+                  { id: 'NewOriginalMusic10', title: "Santa", artist: "Rauw Alejandro, Rvssian", duration: "03:13", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/649b3dbd-2eee-422a-8c18-df584943b082/audio/15b501f3-981c-4d17-8d98-a1e368ae3bef/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FlLxKD7.md.jpg', description: ""},
+
+                  { id: 'NewOriginalMusic08', title: "Lo Que Te Queda", artist: "Tito Rojas", duration: "05:01", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/900649e7-934c-4e6d-8e0c-7bea6f5d65bd/audio/04165230-9b8a-4ebc-8ac5-c0a008b71c8c/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FlLxqx9.jpg', description: ""},
+
+                  { id: 'NewOriginalMusic09', title: "De Profesion, Tu Amante", artist: "Eddie Santiago", duration: "04:29", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/ac3cb25a-dcb5-4ff1-8b70-80b8479431e8/audio/1503ea67-2608-4984-8098-f2bf1673c6f0/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FlLxBVe.jpg', description: ""},
+
+
+
+                  
+                  { id: 'NewOriginalMusic07', title: "Nuevayol", artist: "Bad Bunny", duration: "03:03", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/09703bc5-6d6f-46d5-99e9-eec74cac39ab/audio/450f53d8-f172-437a-9aed-bbab654fd69b/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FomFYOb.md.jpg', description: ""},
+
+                  { id: 'NewOriginalMusic06', title: "DTMF", artist: "Bad Bunny", duration: "4:00", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/a3597efc-3a58-488e-9ac4-15e4a20534f9/audio/8f34ed0e-f46a-484a-88be-747350a80493/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FomFYOb.md.jpg', description: ""},
+                  
+                  { id: 'NewOriginalMusic05', title: "Cobardeee", artist: "Rubby Perez", duration: "04:01", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/c05d4216-3dd8-4170-bfd4-c299f753d0b4/audio/81693e6c-40e3-4c69-a361-e3b43494d98b/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FomFp29.md.jpg', description: ""},
+                  
+                   { id: 'NewOriginalMusic04', title: " Hola Perdida", artist: "El Blachy", duration: "4:00", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/779ec288-996a-49d9-8f86-7e4414a77c65/audio/3c5d653f-e005-438a-ad00-a02766698597/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FoC5sd7.md.jpg', description: " "},
+
+                  { id: 'NewOriginalMusic03', title: "Si Me Dejas, No Vale", artist: "La Linea", duration: "04:02", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/2389fd27-d06d-420b-8490-58541e8f2346/audio/092fb9b6-0727-4557-a47a-f0e102007fc6/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FoC5L79.md.jpg', description: " "},
+
+                  { id: 'NewOriginalMusic02', title: "La Novelita", artist: "Aventura", duration: " 4:03", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/0f142e61-9521-4e6e-8dba-39ece52c8463/audio/7f72b02f-65ed-4827-91c1-5d9016e4fdd1/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FoC5Qee.md.jpg', description: " "},
+
+                  { id: 'NewOriginalMusic01', title: "Suave", artist: "Jey One", duration: "2:30", audioUrl: 'https://cdn.simplecast.com/audio/32a53cbb-0b28-4d2d-b1cc-ef4ef8ee559a/episodes/0e05173a-2240-48dd-9ac7-677d9df09399/audio/3087e801-8e04-4b63-bab6-ef765bb32eb2/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FoC5Zmu.md.jpg', description: " "},
+ 
+
+
+
+
+                ]
+            },
+
+
+
+
+
+
+
+
+
+
+
+            { 
+                name: "",
+                cover: 'https://iili.io/FfUSMPa.md.png',
+                songs: [
+
+
+
+
+
+
+                { id: 'NewMixes39', title: "Salsa Romántica Mix #14 🔥 Lo Mejor para Bailar en Pareja", artist: "Dj Trepasito Rd", duration: "23:15", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/3268604f-e0f9-44ec-80a9-99c018778e00/audio/9fe67ecc-5e45-40bb-b767-cebf3556710b/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fem7rfn.png', description: ""},
+                { id: 'Salsa04', title: "Salsa Rumbera Mix 13", artist: "Dj Treapsito Rd", duration: "31:54", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/40ef9859-06c2-4a1c-9475-66e71f6e20b0/audio/625178cf-baee-46eb-9fd0-6217e043b247/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FMEddZX.md.png', description: ""},
+                { id: 'Salsa03', title: "Salsa Mix", artist: "Dj Machado Flow", duration: "34:42", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/02c59331-a30e-42fa-8017-4a7c8b94935e/audio/00e55f49-cfe0-4dc3-9e72-4c885b168334/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},
+                { id: 'Salsa02', title: "Salsa Mix 12 (Suave) 2025", artist: "Dj Trepasito Rd", duration: "21:12", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/4f13b8d1-19ce-44d5-a7f6-aeaa450c1d91/audio/4c0d787b-7604-44d5-9d1f-34757eb7ffb6/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+                { id: 'Salsa01', title: "Salsa Mix 11 (Romanticas)", artist: "Dj Trepasito Rd", duration: "26:52", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/fba5c7c0-1fae-442d-94d1-b79947405bce/audio/53f4428c-37c2-4510-8bc9-1bd9af15969a/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+                    
+
+
+                ]
+            },
+
+
+       { 
+                name: "",
+                cover: 'https://iili.io/FfUSEoF.md.png',
+                songs: [
+
+
+
+
+
+
+
+
+
+{ id: 'NewMixes42', title: "¡Pura Bachata! ❤️‍🔥 Mix Romántico para Enamorar 2025 🎶 #22", artist: "DJ Trepasito Rd", duration: "29:42", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/567da419-b1c9-4472-84a1-bf906366f73f/audio/fe3d330a-79c3-423f-8ad3-68f6f127ca20/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FrzXwrb.md.png', description: ""},
+
+                { id: 'Bachata08',title: "Bachata Mix 21 - Con Sentimiento 2025", artist: "Dj Trepasito Rd", duration: "22:32", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/f8b293b9-1fe2-4e7d-8c82-bf4afe4de6cc/audio/a06efc62-c760-4e3b-89b8-3a2cf267c632/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FMYS3wG.md.png', description: ""},
+
+                { id: 'Bachata07',  title: "BACHATA MIX 1 2025", artist: "Dj Johmar El Rey", duration: "45:41", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/975f8f25-a0f1-47d3-a920-db9b72f0bdad/audio/e2eac305-8dfb-43b5-8c39-41ef1a50c721/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnTi4qJ.md.jpg', description: ""},
+                  
+                  { id: 'Bachata06', title: "Bachata Vol.3", artist: "Dj Machado Flow", duration: "26:38", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/8afa0d9b-92f6-42fb-a02d-2609accd90d4/audio/fbfebf97-4155-4405-97b2-e333bf795bd2/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: " "},
+                  
+                  
+                 { id: 'Bachata05', title: " Bachata + Tipico Mix", artist: "DJ Johmar El Rey", duration: "28:45", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/361e8938-261f-48bf-9eea-29d3714a1802/audio/628cbe36-18cb-4940-8ae5-6fd6292584bb/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnTi4qJ.jpg', description: "Bachata + Tipico Mix"},
+                  
+                 { id: 'Bachata04', title: "Bachata Mix 20 (Clasicas) 2025", artist: "Dj Trepasito Rd", duration: "22:45", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/d8af5957-8bb4-4d44-b654-34752a4f43fe/audio/2a9c8216-ab1d-40af-8886-7f91dcadea66/default_tc.mp3', coverUrl: 'https://iili.io/3yqiuQj.md.png', description: "" },
+                  
+                  { id: 'Bachata03', title: "Bachata Mix 19 (Clasicas) 2025", artist: "Dj Trepasito Rd", duration: "20:24", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/b286eee1-456c-4779-a303-c2d9f278ea56/audio/452ff14c-c1fb-4199-8c96-9f81c145674f/default_tc.mp3', coverUrl: 'https://iili.io/3ZeE3Xe.md.png', description: "" },
+                  
+                  
+               { id: 'Bachata02',   title: "Bachata Mix 18", artist: "Dj Trepasito Rd", duration: "22:00", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/c241f0d0-e94b-47f5-9a7e-ba127c27a884/audio/576ac8a1-379a-40fb-97f4-6aa98d2d1132/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+                  
+                  
+                      { id: 'Bachata01', title: "Bachata Mix 11 (2)", artist: "Dj Trepasito Rd", duration: "27:06", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/5697c08f-43b7-4638-9436-fa401234e36c/audio/0c7da210-baa5-4931-ac0a-68d1efbedce7/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+                  
+
+
+
+
+                 
+
+                ]
+            },
+
+                   { 
+                name: "",
+                cover: 'https://iili.io/FfUSXcv.md.png',
+                songs: [
+                 
+                  { id: 'Merengue04', title: "MAMBO DE CALLE ACELERAO OMEGA VS SUJETO", artist: "Dj Master Nj", duration: "22:05", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/fec2906a-0a33-4f51-83d8-77e5533e4ac7/audio/cebdd6e6-0fda-4b0a-9055-77ba3a68a176/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FoUVsix.md.jpg', description: ""},
+                  
+                  
+                  { id: 'Merengue03', title: "Merengue Mix Vol.2", artist: "Dj Machado Flow", duration: "24:27", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/d92849c6-89fc-42ca-9b58-07c3709a7fe9/audio/b3d34316-bf05-4539-9556-3e3f0cab6ca3/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},                 
+                  
+                  { id: 'Merengue02', title: "Merengue Mix 10 Mambo X Tipico (Bailable) 2025", artist: "Dj Trepasito Rd", duration: "22:35", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/485c5d59-2544-495a-9672-f23c8e3647dc/audio/fb293aa9-1b08-4a45-9d12-7b6fbad9e61d/default_tc.mp3', coverUrl: 'https://iili.io/3b7YIFn.md.png', description: "" },
+                  
+                  
+                  { id: 'Merengue01', title: "Merengue Mix 9 (Clasicos)", artist: "Dj Trepasito Rd", duration: "24:45", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/f9e70bc3-57a8-4ef7-96d8-8a7c2a2c32e2/audio/4d44861c-333a-4815-bbf0-a9d96e20c04e/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+                
+
+
+
+
+                ]
+            },
+
+                   { 
+                name: "",
+                cover: 'https://iili.io/FfUSONI.md.png',
+                songs: [
+
+
+                  { id: 'Tipico02', title: " Bachata + Tipico Mix", artist: "DJ Johmar El Rey", duration: "28:45", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/361e8938-261f-48bf-9eea-29d3714a1802/audio/628cbe36-18cb-4940-8ae5-6fd6292584bb/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnTi4qJ.jpg', description: "Bachata + Tipico Mix"},
+                  
+                  { id: 'Tipico01',  title: "Tipico Mix 7", artist: "Dj Trepasito Rd", duration: "21:39", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/ba7f0f80-c958-4c74-9363-452ac99eb11e/audio/9b236857-9c40-4545-a4a2-e7ab3afe7721/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+                  
+                ]
+            },
+
+                   { 
+                name: "",
+                cover: 'https://iili.io/FfUSvoX.md.png',
+                songs: [
+
+
+
+
+
+
+
+
+
+
+
+
+
+                
+
+{ id: 'NewMixes45', title: "🎶 Mix de Reggaeton con los Éxitos del Momento 🎶 Karol G, Anuel AA, J Balvin, Bad Bunny y Jowell y Randy", artist: "Dj Trepasito Rd", duration: "14:20", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/538d73f7-836a-42b3-a02a-b34f9f9198a5/audio/45766dc7-dd20-4ddc-8b94-08af1b8f60f2/default_tc.mp3?nocache', coverUrl: 'https://iili.io/F6cp1VV.md.png', description: `1) KAROL G - LATINA FOREVA
+2) Blessd X Anuel AA - Te Canto Bajito
+3) DJ Snake X J Balvin - Noventa
+4) Jowell & Randy - X-100
+5) Bad Bunny Ft. Jowell & Randy, Nengo Flow - Safaera
+6) Bad Bunny - Voy A Llevarte A PR
+7) Juanka - 2 Pa 1
+8) Floyymenor X Lewis Somes - My Love
+
+`},
+
+                { id: 'Reggaeton05', title: "Reggaeton Mix #32 - Clasicos y Nuevos 2025", artist: "Dj Trepasito Rd", duration: "25:48", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/6636511b-46c3-41ca-889f-fbde0e1752a6/audio/ff344ce7-2383-4eca-bfdb-d598de964b7b/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FVm5214.md.png', description: ""},
+
+                { id: 'Reggaeton04', title: "Clean Reggaeton Mix 2025", artist: "Dj Machado Flow", duration: "23:00", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/e9b2ba8a-a94d-4048-8db5-79b099da398d/audio/861f46f4-9dab-4e81-8d43-52e7d2018aef/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},
+                
+                { id: 'Reggaeton03', title: "Reggaeton Mix 29 (Clean)", artist: "Dj Trepasito Rd", duration: "11:18", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/0756b293-8794-4085-9dbb-732ad9c2cecb/audio/844ab808-6114-4182-9170-b479ba22d334/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+                  
+                { id: 'Reggaeton02', title: "Reggaeton Mix 28 (Old School) ThrowBacks 2025", artist: "Dj Trepasito Rd", duration: "11:52", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/20e0c61b-1b1f-413c-98ac-d5216cbe6727/audio/4d85d669-5e95-4265-92b2-83ed8501900d/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+                  
+                { id: 'Reggaeton01',  title: "Reggaeton Mix 27 (Dirty)", artist: "Dj Trepasito Rd", duration: "15:28", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/2662cee7-c260-431c-88eb-d64b3c8f1b7a/audio/49ea3dbf-69bf-4315-a3ff-c9870be2d731/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+        
+
+                ]
+            },
+
+                   { 
+                name: "",
+                cover: 'https://iili.io/FfUSSPs.md.png',
+                songs: [
+
+
+
+
+                    { id: 'NewMixes41', title: "¡La mejor mezcla de Dembow para tu fiesta en 2025!", artist: "Dj Trepasito Rd", duration: "1:10:55", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/1e761f8f-9c6d-4ad5-809f-b9e66b1856a9/audio/158022df-e887-40c3-ba2f-184e36e974d0/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FUfNdF9.md.jpg', description: ""},
+                    
+                    { id: 'NewMixes37', title: "Urbano y Dembow Mini Mix 66", artist: "Dj Trepasito Rd", duration: "10:30", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/50e6f86b-0b0b-4e66-8190-7cae7ca4e7cc/audio/3dbe734f-cd50-41f6-ab50-ecd36211ca1c/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fj2r1J1.png', description: ""},
+
+                    { id: 'Dembow 06', title: "Dembow Mix 65 - Ladies Edition", artist: "Dj Trepasito Rd", duration: "43:14", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/9c6c9a02-c79a-4877-86fc-5d47b6788784/audio/5b5c18f6-fb9b-46cf-8000-e03cbdcd3263/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FVPxc7I.png', description: ""},
+
+                    { id: 'Dembow05', title: "Dembow Mix", artist: "DJ Johmar El Rey", duration: "30:26", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/3e75ffa5-a292-4830-9244-032d4190788d/audio/5d11d397-d4f2-4410-b6fe-33d93497bfb9/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnTi4qJ.jpg', description: ""},
+                  
+                  { id: 'Dembow04',  title: "Dembow Mix 63 (Dirty) Variado 2025", artist: "Dj Trepasito Rd", duration: "22:38", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/0e63c907-27f4-4d90-b773-f68ef9827410/audio/dabf3f58-38ca-4c6e-ba31-63c4b47b5e1d/default_tc.mp3', coverUrl: 'https://iili.io/3pHHqg4.md.png', description: "" },
+                
+                 { id: 'Dembow03',   title: "Dembow Mix 62 (Dirty) (New And Old Hits)", artist: "Dj Trepasito Rd", duration: "26:42", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/6509a4f0-f4f1-4698-94fd-4ed8fb70034c/audio/7a0f78a4-5c33-4ce0-af9b-8f699292c0f1/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+                  
+                  { id: 'Dembow02',  title: "Dembow Mix 61 (Dirty) (Throwbacks)", artist: "Dj Trepasito Rd", duration: "18:30", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/87f7e558-16fd-42ac-a54a-11913eaf8ff9/audio/2e6d422a-a7a5-472f-aef7-86768d5931e4/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+                  
+                  { id: 'Dembow01',  title: "Dembow Mix 60 (Dirty) Estrenos Abril 2025", artist: "Dj Trepasito Rd", duration: "22:28", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/4d9c2d1c-dca8-494c-8350-e8d192ad78ca/audio/de447e18-c88c-4081-bd1a-9650f8190296/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: "" },
+                  
+
+                ]
+            },
+
+                   { 
+                name: "",
+                cover: 'https://iili.io/FfUSrlf.md.png',
+                songs: [
+
+
+
+
+
+
+
+
+
+
+
+               { id: 'FullMixesd01', title: "", artist: "", duration: "", audioUrl: '', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+                    
+
+                ]
+            },
+
+
+
+
+                   { 
+                name: "",
+                cover: 'https://iili.io/FaObtPj.md.png',
+                songs: [
+
+
+
+
+
+
+               { id: 'NewMixes40', title: "Diva's Delight: Hip Hop Mix #2 (Female Edition)", artist: "Dj Trepasito Rd", duration: "14:18", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/de9ad022-9391-4b7b-8b66-9bfc5a807d3f/audio/c50103b8-95cb-441c-8873-5ef71bcd1af8/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fk8nKTN.png', description: ""},
+               { id: 'Hip Hop01', title: "Hip Hop Mix Clean", artist: "Dj Trepasito Rd", duration: "22:31", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/b7c1e9da-cbea-4fcf-bfd1-a76da99b8e66/audio/50978bdd-8170-4784-98ac-43a0ab4ca930/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FaOvYsn.md.jpg', description: ""},
+                    
+
+                ]
+            },
+
+
+
+
+
+
+
+{ 
+                name: "Party Mixes",
+                cover: 'https://iili.io/3DFDCBe.png',
+                songs: [
+
+        
+
+                { id: 'NewMixes46', title: "PURA CANDELA 🔥 PARTY MIX  Merengue, Bachata y Salsa para 2025", artist: "Dj Trepasito Rd", duration: "1:18:46", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/75713f69-ce6b-4f42-aaf7-e17b0e544f18/audio/c9982e2c-57e7-4319-9584-fe5b66851264/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FsHYzmX.md.png', description: `
+
+Merengue
+1 Los Hermanos Rosario - Esa Muchacha
+2 Benny Sadel - Amor Amor
+3 Olga Tañon - Es Mentiroso
+4 Miriam Cruz - La Loba
+5 No Voy a Llorar - Rubby Perez
+6 Tu Vas A Volar - Rubby Perez
+7 Manny Cruz - Oye
+8 Juan Luis Guerra - Me Enamoro De Ella
+9 Alex-Bueno - La Radio
+
+Bachata
+10 Aventura - Desprecio
+11 Monchy Y Alexandra - Hoja En Blanco
+12 Yoskar Sarante - Entre Tu Amor Y Mi Dolor
+13 Raulin Rodriguez - Si Yo Pudiera
+14 Anthony Santos - Voy Pa Ya En Vivo
+15 Zacarias Ferreira - Se Marcho El Amor
+16 Decidí - Frank Reyes
+17 Yoskar Sarante - Vale La Pena
+18 Debate De 4 - Romeo Santos X VARIOS
+19 Hector Acosta El Torito - No Morire
+
+Salsa
+20 Willie Rosario - Anuncio Clasificado
+21 Salsa kids - Dejame un beso
+22 Int. Sabor - Te Va Doler
+23 Grupo Niche - Nuestro Sueño
+24 Cuco Valoy - Amor Para Mi
+25 Frankie Ruiz - Bailando
+26 Chiquito Team Band - Mi Amor Es Pobre Version Salsa
+27 Frankie Ruiz - Mi Libertad
+28 Marc Anthony - Nadie Como Ella
+29 Yiyo Sarante - 2 Veces
+`},
+        
+        { id: 'NewMixes41', title: "¡La mejor mezcla de Dembow para tu fiesta en 2025!", artist: "Dj Trepasito Rd", duration: "1:10:55", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/1e761f8f-9c6d-4ad5-809f-b9e66b1856a9/audio/158022df-e887-40c3-ba2f-184e36e974d0/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FUfNdF9.md.jpg', description: ""},
+        
+        { id: 'NewMixes38', title: "OutSide Latin Party Mix 2025 Salsa Bachata Merengue Reggaeton Dembow Latin Trap Clean", artist: "Dj Trepasito Rd", duration: "2:00:10", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/538b67d7-0661-4076-9b0c-468078720749/audio/2ec40736-551a-4ae5-a24a-4501a653bce9/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FjAwCpR.png', description: ""},
+        
+                { id: 'PartyMixes01', title: "Party Mix - Top 40, Afro House, Edm, Guaracha", artist: "Dj Johmar El Rey", duration: "17:59", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/9ca0f976-7d29-4c8c-ac80-fe8fb00fdee9/audio/dc8539cf-74fc-4ebc-a293-97758bcbfa01/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FXEICzJ.md.png', description: ""},
+              
+        
+
+                ]
+            },
+
+
+
+{ 
+                name: "Albumes Mixes",
+                cover: 'https://iili.io/3DFDCBe.png',
+                songs: [
+
+                 
+                
+                
+                { id: 'AlbummesMixes02', title: "Tropicoqueta Mix - Karol G", artist: "Dj Trepasito Rd", duration: "33:15", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/7368bd2e-66af-4b49-a7d9-e42f192996eb/audio/b448a950-705d-4b1b-887f-727312e72671/default_tc.mp3?nocache', coverUrl: 'https://iili.io/F0e8Jnt.png', description: ""},
+                
+                    
+                { id: 'AlbumesMixes01', title: "Bad Bunny - DeBÍ TiRAR MáS FOToS - Album Mix 2025", artist: "DJ Johmar El Rey", duration: "51:52", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/f5f5eb41-582e-46a2-94e3-0ecb963e2b5b/audio/dab3e7b0-2453-4a56-9ae2-3795ffc1147c/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnaS6Be.png', description: ""},
+
+                ]
+            },
+
+
+
+{ 
+                name: "",
+                cover: 'https://iili.io/F75X3pS.md.png',
+                songs: [
+
+
+
+
+
+
+
+{ id: 'NewMixes46', title: "PURA CANDELA 🔥 PARTY MIX  Merengue, Bachata y Salsa para 2025", artist: "Dj Trepasito Rd", duration: "1:18:46", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/75713f69-ce6b-4f42-aaf7-e17b0e544f18/audio/c9982e2c-57e7-4319-9584-fe5b66851264/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FsHYzmX.md.png', description: `
+
+Merengue
+1 Los Hermanos Rosario - Esa Muchacha
+2 Benny Sadel - Amor Amor
+3 Olga Tañon - Es Mentiroso
+4 Miriam Cruz - La Loba
+5 No Voy a Llorar - Rubby Perez
+6 Tu Vas A Volar - Rubby Perez
+7 Manny Cruz - Oye
+8 Juan Luis Guerra - Me Enamoro De Ella
+9 Alex-Bueno - La Radio
+
+Bachata
+10 Aventura - Desprecio
+11 Monchy Y Alexandra - Hoja En Blanco
+12 Yoskar Sarante - Entre Tu Amor Y Mi Dolor
+13 Raulin Rodriguez - Si Yo Pudiera
+14 Anthony Santos - Voy Pa Ya En Vivo
+15 Zacarias Ferreira - Se Marcho El Amor
+16 Decidí - Frank Reyes
+17 Yoskar Sarante - Vale La Pena
+18 Debate De 4 - Romeo Santos X VARIOS
+19 Hector Acosta El Torito - No Morire
+
+Salsa
+20 Willie Rosario - Anuncio Clasificado
+21 Salsa kids - Dejame un beso
+22 Int. Sabor - Te Va Doler
+23 Grupo Niche - Nuestro Sueño
+24 Cuco Valoy - Amor Para Mi
+25 Frankie Ruiz - Bailando
+26 Chiquito Team Band - Mi Amor Es Pobre Version Salsa
+27 Frankie Ruiz - Mi Libertad
+28 Marc Anthony - Nadie Como Ella
+29 Yiyo Sarante - 2 Veces
+`},
+
+
+
+
+
+                { id: 'NewMixes45', title: "🎶 Mix de Reggaeton con los Éxitos del Momento 🎶 Karol G, Anuel AA, J Balvin, Bad Bunny y Jowell y Randy", artist: "Dj Trepasito Rd", duration: "14:20", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/538d73f7-836a-42b3-a02a-b34f9f9198a5/audio/45766dc7-dd20-4ddc-8b94-08af1b8f60f2/default_tc.mp3?nocache', coverUrl: 'https://iili.io/F6cp1VV.md.png', description: `1) KAROL G - LATINA FOREVA
+2) Blessd X Anuel AA - Te Canto Bajito
+3) DJ Snake X J Balvin - Noventa
+4) Jowell & Randy - X-100
+5) Bad Bunny Ft. Jowell & Randy, Nengo Flow - Safaera
+6) Bad Bunny - Voy A Llevarte A PR
+7) Juanka - 2 Pa 1
+8) Floyymenor X Lewis Somes - My Love
+
+`},
+
+
+
+{ id: 'NewMixes44', title: "DANCEHALL MIX 2025 🚀 Pure Fire for Dancing! 🔥", artist: "Dj Trepasito Rd", duration: "16:08", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/f93494be-0623-4895-ae50-62dd1bcc0eb8/audio/1935cbf0-e1a4-489c-b39c-d640ee577340/default_tc.mp3?nocache', coverUrl: 'https://iili.io/F4SUsXR.md.png', description: `
+1) Like Glue - Sean Paul
+2) Bunny General - Full Up A Class
+3) Vybz Cartel - Fever
+4) Buju Banton - Batty Rider
+5) Mr Vegas - Head High
+6) 100 - Chivv ft. Jandro & Jonna Fraser - Banana
+7) Super Cat - Nuff Man Dead`},
+
+
+{ id: 'NewMixes43', title: "Back to the 80s! 🔙 The BEST Freestyle Mix You NEED to Hear 🎧🔥", artist: "Dj Trepasito Rd", duration: "22:12", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/acdb9a7b-17c8-4526-b1cf-5f18794ac150/audio/7089d04c-cd2b-49d0-8ff9-aec904bc066c/default_tc.mp3?nocache', coverUrl: 'https://iili.io/F4k2ust.md.png', description: `
+                    
+1) Show Me (Hearthrob Mix) - The Cover Girls
+2) Forget Me Nots - Remastered - Patrice Rushen
+3) I Wonder If I Take You Home (with Full Force) - Lisa Lisa & Cult Jam
+4) For Tonight - Club Mix - Nancy Martinez
+5) Summertime, Summertime - Nocera.mp3
+6) Do You Wanna Dance - Club Dance - Bad Boy Orchestra
+7) Come Get My Love - TKA
+                    
+                    `},
+
+
+
+{ id: 'NewMixes42', title: "¡Pura Bachata! ❤️‍🔥 Mix Romántico para Enamorar 2025 🎶 #22", artist: "DJ Trepasito Rd", duration: "29:42", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/567da419-b1c9-4472-84a1-bf906366f73f/audio/fe3d330a-79c3-423f-8ad3-68f6f127ca20/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FrzXwrb.md.png', description: ""},
+
+
+{ id: 'NewMixes41', title: "¡La mejor mezcla de Dembow para tu fiesta en 2025!", artist: "Dj Trepasito Rd", duration: "1:10:55", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/1e761f8f-9c6d-4ad5-809f-b9e66b1856a9/audio/158022df-e887-40c3-ba2f-184e36e974d0/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FUfNdF9.md.jpg', description: ""},
+
+
+{ id: 'NewMixes40', title: "Diva's Delight: Hip Hop Mix #2 (Female Edition)", artist: "Dj Trepasito Rd", duration: "14:18", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/de9ad022-9391-4b7b-8b66-9bfc5a807d3f/audio/c50103b8-95cb-441c-8873-5ef71bcd1af8/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fk8nKTN.png', description: ""},
+                
+
+{ id: 'NewMixes39', title: "Salsa Romántica Mix #14 🔥 Lo Mejor para Bailar en Pareja", artist: "Dj Trepasito Rd", duration: "23:15", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/3268604f-e0f9-44ec-80a9-99c018778e00/audio/9fe67ecc-5e45-40bb-b767-cebf3556710b/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fem7rfn.png', description: ""},
+
+{ id: 'NewMixes38', title: "OutSide Latin Party Mix 2025 Salsa Bachata Merengue Reggaeton Dembow Latin Trap Clean", artist: "Dj Trepasito Rd", duration: "2:00:10", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/538b67d7-0661-4076-9b0c-468078720749/audio/2ec40736-551a-4ae5-a24a-4501a653bce9/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FjAwCpR.png', description: ""},
+
+                { id: 'NewMixes37', title: "Urbano y Dembow Mini Mix 66", artist: "Dj Trepasito Rd", duration: "10:30", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/50e6f86b-0b0b-4e66-8190-7cae7ca4e7cc/audio/3dbe734f-cd50-41f6-ab50-ecd36211ca1c/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fj2r1J1.png', description: ""},
+
+ { id: 'DjTrepasitoRd19', title: "Reggaeton Mix #32 - Clasicos y Nuevos 2025", artist: "Dj Trepasito Rd", duration: "25:48", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/6636511b-46c3-41ca-889f-fbde0e1752a6/audio/ff344ce7-2383-4eca-bfdb-d598de964b7b/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FVm5214.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd18', title: "Dembow Mix 65 - Ladies Edition", artist: "Dj Trepasito Rd", duration: "43:14", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/9c6c9a02-c79a-4877-86fc-5d47b6788784/audio/5b5c18f6-fb9b-46cf-8000-e03cbdcd3263/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FVPxc7I.png', description: ""},
+
+{ id: 'DjTrepasitoRd17', title: "Salsa Rumbera Mix 13", artist: "Dj Trepasito Rd", duration: "31:54", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/40ef9859-06c2-4a1c-9475-66e71f6e20b0/audio/625178cf-baee-46eb-9fd0-6217e043b247/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FMEddZX.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd16', title: "Bachata Mix 21 - Con Sentimiento 2025", artist: "Dj Trepasito Rd", duration: "22:32", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/f8b293b9-1fe2-4e7d-8c82-bf4afe4de6cc/audio/a06efc62-c760-4e3b-89b8-3a2cf267c632/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FMYS3wG.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd01', title: "Reggaeton Mix 29 (Clean)", artist: "Dj Trepasito Rd", duration: "11:18", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/0756b293-8794-4085-9dbb-732ad9c2cecb/audio/844ab808-6114-4182-9170-b479ba22d334/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd02', title: "Bachata Mix 20 (Clasicas) 2025", artist: "Dj Trepasito Rd", duration: "22:45", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/d8af5957-8bb4-4d44-b654-34752a4f43fe/audio/2a9c8216-ab1d-40af-8886-7f91dcadea66/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd03', title: "Dembow Mix 63 (Dirty) Variado 2025", artist: "Dj Trepasito Rd", duration: "22:38", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/0e63c907-27f4-4d90-b773-f68ef9827410/audio/dabf3f58-38ca-4c6e-ba31-63c4b47b5e1d/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd04', title: "Bachata Mix 19 (Clasicas) 2025", artist: "Dj Trepasito Rd", duration: "20:24", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/b286eee1-456c-4779-a303-c2d9f278ea56/audio/452ff14c-c1fb-4199-8c96-9f81c145674f/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd05', title: "Reggaeton Mix 28 (Old School) ThrowBacks 2025", artist: "Dj Trepasito Rd", duration: "11:52", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/20e0c61b-1b1f-413c-98ac-d5216cbe6727/audio/4d85d669-5e95-4265-92b2-83ed8501900d/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd06', title: "Dembow Mix 62 (Dirty) (New And Old Hits)", artist: "Dj Trepasito Rd", duration: "26:42", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/6509a4f0-f4f1-4698-94fd-4ed8fb70034c/audio/7a0f78a4-5c33-4ce0-af9b-8f699292c0f1/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd07', title: "Latin Party Summer Mix 2025 Vol.4", artist: "Dj Trepasito Rd", duration: "01:07:48", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/b80891a8-f086-4ada-98c3-6f5f42a2ded3/audio/37b8ef3c-4e96-4a43-95eb-92b06b4c80a7/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd08', title: "Merengue Mix 9 (Clasicos)", artist: "Dj Trepasito Rd", duration: "24:45", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/f9e70bc3-57a8-4ef7-96d8-8a7c2a2c32e2/audio/4d44861c-333a-4815-bbf0-a9d96e20c04e/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd09', title: "Dembow Mix 61 (Dirty) (Throwbacks)", artist: "Dj Trepasito Rd", duration: "18:30", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/87f7e558-16fd-42ac-a54a-11913eaf8ff9/audio/2e6d422a-a7a5-472f-aef7-86768d5931e4/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd10', title: "Reggaeton Mix 27 (Dirty)", artist: "Dj Trepasito Rd", duration: "15:28", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/2662cee7-c260-431c-88eb-d64b3c8f1b7a/audio/49ea3dbf-69bf-4315-a3ff-c9870be2d731/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd11', title: "Tipico Mix 7", artist: "Dj Trepasito Rd", duration: "21:39", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/ba7f0f80-c958-4c74-9363-452ac99eb11e/audio/9b236857-9c40-4545-a4a2-e7ab3afe7721/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd12', title: "Salsa Mix 11 (Romanticas)", artist: "Dj Trepasito Rd", duration: "26:52", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/fba5c7c0-1fae-442d-94d1-b79947405bce/audio/53f4428c-37c2-4510-8bc9-1bd9af15969a/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd13', title: "Dembow Mix 60 (Dirty) Estrenos Abril 2025", artist: "Dj Trepasito Rd", duration: "22:28", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/4d9c2d1c-dca8-494c-8350-e8d192ad78ca/audio/de447e18-c88c-4081-bd1a-9650f8190296/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd14', title: "Bachata Mix 18", artist: "Dj Trepasito Rd", duration: "22:00", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/c241f0d0-e94b-47f5-9a7e-ba127c27a884/audio/576ac8a1-379a-40fb-97f4-6aa98d2d1132/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+{ id: 'DjTrepasitoRd15', title: "Bachata Mix 11 (2)", artist: "Dj Trepasito Rd", duration: "27:06", audioUrl: 'https://cdn.simplecast.com/audio/260cf4f9-ee99-495d-bcf8-a18dfb81fa6c/episodes/5697c08f-43b7-4638-9436-fa401234e36c/audio/0c7da210-baa5-4931-ac0a-68d1efbedce7/default_tc.mp3', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+
+
+
+
+
+                ]
+            },
+
+
+            { 
+                name: "",
+                cover: 'https://iili.io/FnTi4qJ.jpg',
+                songs: [
+
+
+
+                 { id: 'DjJohmarElRey05', title: "Party Mix - Top 40, Afro House, Edm, Guaracha", artist: "Dj Johmar El Rey", duration: "17:59", audioUrl: 'https://cdn.simplecast.com/audio/145cbd49-a00e-4561-a19b-d2f9f7ab5374/episodes/9ca0f976-7d29-4c8c-ac80-fe8fb00fdee9/audio/dc8539cf-74fc-4ebc-a293-97758bcbfa01/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FXEICzJ.md.png', description: ""},
+                 { id: 'DjJohmarElRey01', title: "BACHATA MIX 1 Para Beber y Bailar 2025", artist: "Dj Johmar El Rey", duration: "45:41", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/975f8f25-a0f1-47d3-a920-db9b72f0bdad/audio/e2eac305-8dfb-43b5-8c39-41ef1a50c721/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnTi4qJ.md.jpg', description: ""},
+                 { id: 'DjJohmarElRey02', title: "Dembow Mix", artist: "DJ Johmar El Rey", duration: "30:26", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/3e75ffa5-a292-4830-9244-032d4190788d/audio/5d11d397-d4f2-4410-b6fe-33d93497bfb9/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnTi4qJ.jpg', description: ""},
+                 { id: 'DjJohmarElRey03', title: "Bad Bunny - DeBÍ TiRAR MáS FOToS - Album Mix 2025", artist: "DJ Johmar El Rey", duration: "51:52", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/f5f5eb41-582e-46a2-94e3-0ecb963e2b5b/audio/dab3e7b0-2453-4a56-9ae2-3795ffc1147c/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnaS6Be.png', description: ""},
+                 { id: 'DjJohmarElRey04', title: " Bachata + Tipico Mix", artist: "DJ Johmar El Rey", duration: "28:45", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/361e8938-261f-48bf-9eea-29d3714a1802/audio/628cbe36-18cb-4940-8ae5-6fd6292584bb/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnTi4qJ.jpg', description: "Bachata + Tipico Mix"},
+                  
+
+
+
+
+
+
+
+
+                ]
+            },
+
+
+            { 
+                name: "",
+                cover: 'https://iili.io/Fn5M3W7.md.png',
+                songs: [
+
+                 { id: 'DjMachadoFlow04',  title: "Clean Reggaeton Mix 2025", artist: "Dj Machado Flow", duration: "23:00", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/e9b2ba8a-a94d-4048-8db5-79b099da398d/audio/861f46f4-9dab-4e81-8d43-52e7d2018aef/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},
+                
+                { id: 'DjMachadoFlow03',   title: "Salsa Mix", artist: "Dj Machado Flow", duration: "34:42", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/02c59331-a30e-42fa-8017-4a7c8b94935e/audio/00e55f49-cfe0-4dc3-9e72-4c885b168334/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},
+
+                 { id: 'DjMachadoFlow02',   title: "Merengue Mix Vol.2", artist: "Dj Machado Flow", duration: "24:27", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/d92849c6-89fc-42ca-9b58-07c3709a7fe9/audio/b3d34316-bf05-4539-9556-3e3f0cab6ca3/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},
+
+                  { id: 'DjMachadoFlow01', title: "Bachata Vol.3", artist: "Dj Machado Flow", duration: "26:38", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/8afa0d9b-92f6-42fb-a02d-2609accd90d4/audio/fbfebf97-4155-4405-97b2-e333bf795bd2/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},
+                    
+
+                ]
+            },
+
+
+            { 
+                name: "",
+                cover: 'https://iili.io/FoCWqqF.jpg',
+                songs: [
+
+
+
+
+
+
+                    { id: 'DjAxelcito01', title: "Bachata Mix", artist: "Dj Axelcito", duration: "13:42", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/2f2660a6-8789-4526-b9b7-7cce5b54dce4/audio/9bf987a5-3df7-430a-961d-316cfd65f05f/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FoCWqqF.jpg', description: " "},
+                  
+
+
+
+
+                ]
+            },
+
+{ 
+                name: "",
+                cover: 'https://iili.io/FoUVsix.md.jpg',
+                songs: [
+
+
+
+                
+                    { id: 'DjMasterNj01', title: "MAMBO DE CALLE ACELERAO OMEGA VS SUJETO", artist: "Dj Master Nj", duration: "22:05", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/fec2906a-0a33-4f51-83d8-77e5533e4ac7/audio/cebdd6e6-0fda-4b0a-9055-77ba3a68a176/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FoUVsix.md.jpg', description: ""},
+
+
+
+
+
+                ]
+            },
+
+
+
+            { 
+                name: "Exclusive Dj Mixes",
+                cover: 'https://iili.io/3DFDCBe.png',
+                songs: [
+
+            
+                ]
+            },
+
+
+            { 
+                name: "Short Mixes",
+                cover: 'https://iili.io/3DFDCBe.png',
+                songs: [
+
+            { id: 'FullMixesd01', title: "", artist: "", duration: "", audioUrl: '', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+                  
+
+                ]
+            },
+
+
+
+            { 
+                name: "Full Mixes",
+                cover: 'https://iili.io/3DFDCBe.png',
+                songs: [
+
+                 { id: 'FullMixesd01', title: "", artist: "", duration: "", audioUrl: '', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
+                    
+
+                ]
+            },
+
+
+
+
+
+
+            // Resto de la base de datos...
+        ];
+
+        // --- ELEMENTOS DEL DOM ---
+        const audioPlayer = document.getElementById('audio-player');
+        const playerBackground = document.getElementById('player-background-blurred');
+        const appHeader = document.getElementById('app-header');
+        
+        const playPauseBtns = document.querySelectorAll('.play-pause-btn');
+        const prevBtns15s = document.querySelectorAll('.prev-btn-15s');
+        const nextBtns15s = document.querySelectorAll('.next-btn-15s');
+        const repeatBtns = document.querySelectorAll('.repeat-button');
+        
+        const playerControls = document.getElementById('player-controls');
+        const playerSongInfoContainer = playerControls.querySelector('.player-song-info-container');
+        const playerProgressBar = document.getElementById('player-progress-bar');
+        const playerProgressContainer = document.getElementById('player-progress-clickable-area');
+        const playerSongCover = document.getElementById('player-song-cover');
+        const playerSongTitle = document.getElementById('player-song-title');
+        const playerSongArtist = document.getElementById('player-song-artist');
+
+        const nowPlayingView = document.getElementById('now-playing-view');
+        const npBackButton = document.getElementById('np-back-btn');
+        const npCover = document.getElementById('now-playing-cover');
+        const npTitle = document.getElementById('now-playing-title');
+        const npArtist = document.getElementById('now-playing-artist');
+        const npProgressBar = document.getElementById('np-progress-bar');
+        const npProgressContainer = document.getElementById('np-progress-clickable-area');
+        const npCurrentTimeEl = document.getElementById('np-current-time');
+        const npTotalTimeEl = document.getElementById('np-total-time');
+
+        const views = document.querySelectorAll('.view');
+        const categoriesView = document.getElementById('categories-view');
+        const playlistView = document.getElementById('playlist-view');
+        const myPlaylistsView = document.getElementById('my-playlists-view');
+        const userPlaylistView = document.getElementById('user-playlist-view');
+        const searchResultsView = document.getElementById('search-results-view');
+        
+        const categoriesGrid = document.getElementById('categories-grid');
+        const songsListContainer = document.getElementById('songs-list');
+        const userPlaylistsListContainer = document.getElementById('user-playlists-list');
+        const userPlaylistSongsListContainer = document.getElementById('user-playlist-songs-list');
+        const searchResultsListContainer = document.getElementById('search-results-list');
+
+        const playlistTitleEl = document.getElementById('playlist-title');
+        const userPlaylistTitleEl = document.getElementById('user-playlist-title');
+        
+        const descriptionModal = document.getElementById('description-modal');
+        const createPlaylistModal = document.getElementById('create-playlist-modal');
+        const addToPlaylistModal = document.getElementById('add-to-playlist-modal');
+        const closeModalBtns = document.querySelectorAll('.close-modal-btn');
+
+        const searchButton = document.getElementById('search-button');
+        const searchInput = document.getElementById('search-input');
+
+        const navCategoriesBtn = document.getElementById('nav-categories-btn');
+        const navMyPlaylistsBtn = document.getElementById('nav-my-playlists-btn');
+        const backToCategoriesBtn = document.getElementById('back-to-categories-btn');
+        const backToMyPlaylistsBtn = document.getElementById('back-to-my-playlists-btn');
+        const backFromSearchBtn = document.getElementById('back-from-search-btn');
+
+        const createPlaylistBtn = document.getElementById('create-playlist-btn');
+        const confirmCreatePlaylistBtn = document.getElementById('confirm-create-playlist-btn');
+        const newPlaylistNameInput = document.getElementById('new-playlist-name');
+        const playlistSelectionList = document.getElementById('playlist-selection-list');
+
+        // --- ESTADO DE LA APLICACIÓN ---
+        let currentSong = { listType: null, playlistId: null, songId: null };
+        let isPlaying = false;
+        let isRepeat = false;
+        let userPlaylists = []; // <-- Se inicializa vacío, pero se llenará desde localStorage
+        let songToAdd = null;
+        let viewHistory = [categoriesView];
+
+        // --- INICIALIZACIÓN ---
+        const init = () => {
+            loadUserPlaylists(); // <-- AÑADIDO: Cargar playlists al iniciar
+            renderCategories();
+            renderUserPlaylists();
+            setupEventListeners();
+            updateAllPlayerControls();
+        };
+
+        // --- FUNCIONES PARA GUARDAR Y CARGAR DESDE LOCALSTORAGE ---
+
+        // <-- AÑADIDO: Guarda el array userPlaylists en localStorage
+        const saveUserPlaylists = () => {
+            // localStorage solo guarda texto, así que convertimos el array de objetos a un string JSON
+            localStorage.setItem('userPlaylists', JSON.stringify(userPlaylists));
+        };
+
+        // <-- AÑADIDO: Carga las playlists desde localStorage al iniciar la app
+        const loadUserPlaylists = () => {
+            const storedPlaylists = localStorage.getItem('userPlaylists');
+            if (storedPlaylists) {
+                // Si encontramos datos, los convertimos de string JSON de vuelta a un array de objetos
+                userPlaylists = JSON.parse(storedPlaylists);
+            }
+        };
+
+        // --- RENDERIZADO ---
+        const renderCategories = () => {
+            categoriesGrid.innerHTML = '';
+            musicDatabase.forEach((playlist, index) => {
+                if (playlist.songs.length === 0) return; // No mostrar categorías vacías
+                const el = document.createElement('div');
+                el.className = 'category-item';
+                el.dataset.playlistIdx = index;
+                el.innerHTML = `<img src="${playlist.cover}" alt="${playlist.name}"><span class="category-name">${playlist.name}</span>`;
+                el.addEventListener('click', () => showPlaylistView(index));
+                categoriesGrid.appendChild(el);
+            });
+        };
+
+        const createSongItemHTML = (song, listType, playlistId) => {
+            const isActive = currentSong.songId === song.id;
+            return `
+                <div class="song-item ${isActive ? 'active-song' : ''}" data-song-id="${song.id}" data-list-type="${listType}" data-playlist-id="${playlistId}">
+                    <img src="${song.coverUrl || 'https://iili.io/3DFDCBe.png'}" alt="${song.title}" class="song-cover">
+                    <div class="song-info">
+                        <div class="song-title">${song.title}</div>
+                        <div class="song-artist">${song.artist}</div>
+                    </div>
+                    <div class="song-duration">${song.duration}</div>
+                    <div class="song-item-controls">
+                        <button class="add-to-playlist-btn" title="Añadir a playlist"><i class="fas fa-plus"></i></button>
+                        ${listType === 'user' ? `<button class="remove-from-playlist-btn" title="Quitar de esta playlist"><i class="fas fa-trash-alt"></i></button>` : ''}
+                    </div>
+                </div>`;
+        };
+
+        const renderSongList = (container, songs, listType, playlistId) => {
+            container.innerHTML = songs.length > 0 ? songs.map(song => createSongItemHTML(song, listType, playlistId)).join('') : '<p style="text-align:center; color: var(--text-color-muted);">No hay mixes aquí.</p>';
+            addEventListenersToSongItems(container);
+        };
+
+        const renderUserPlaylists = () => {
+            userPlaylistsListContainer.innerHTML = userPlaylists.length > 0 ? '' : '<p style="text-align:center; color: var(--text-color-muted);">Aún no has creado ninguna playlist.</p>';
+            userPlaylists.forEach(playlist => {
+                const el = document.createElement('div');
+                el.className = 'playlist-list-item';
+                el.dataset.playlistId = playlist.id;
+                el.innerHTML = `<div class="playlist-list-item-info"><i class="fas fa-record-vinyl"></i><span class="playlist-list-item-name">${playlist.name}</span></div><button class="delete-playlist-btn" title="Eliminar playlist"><i class="fas fa-trash-alt"></i></button>`;
+                userPlaylistsListContainer.appendChild(el);
+                el.querySelector('.playlist-list-item-info').addEventListener('click', () => showUserPlaylistView(playlist.id));
+                el.querySelector('.delete-playlist-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (confirm(`¿Eliminar la playlist "${playlist.name}"?`)) deletePlaylist(playlist.id);
+                });
+            });
+        };
+
+        // --- NAVEGACIÓN Y VISTAS ---
+        const switchView = (viewToShow) => {
+            views.forEach(v => v.classList.remove('active'));
+            viewToShow.classList.add('active');
+            if (viewHistory[viewHistory.length - 1] !== viewToShow) viewHistory.push(viewToShow);
+            if (viewToShow !== categoriesView && viewToShow !== myPlaylistsView) appHeader.classList.remove('searching');
+        };
+
+        const goBack = () => {
+            if (viewHistory.length > 1) {
+                viewHistory.pop();
+                switchView(viewHistory[viewHistory.length - 1]);
+            }
+        };
+
+        const showPlaylistView = (idx) => {
+            const playlist = musicDatabase[idx];
+            playlistTitleEl.textContent = playlist.name;
+            renderSongList(songsListContainer, playlist.songs, 'category', idx);
+            switchView(playlistView);
+        };
+
+        const showUserPlaylistView = (id) => {
+            const playlist = userPlaylists.find(p => p.id === id);
+            if (!playlist) return;
+            userPlaylistTitleEl.textContent = playlist.name;
+            renderSongList(userPlaylistSongsListContainer, playlist.songs, 'user', id);
+            switchView(userPlaylistView);
+        };
+        
+        const showSearchResultsView = (results) => {
+            renderSongList(searchResultsListContainer, results, 'search', null);
+            switchView(searchResultsView);
+        };
+
+        const updateNavButtons = (activeBtn) => {
+            [navCategoriesBtn, navMyPlaylistsBtn].forEach(btn => btn.classList.remove('active'));
+            if (activeBtn) activeBtn.classList.add('active');
+        };
+
+        // --- FUNCIONES DEL REPRODUCTOR ---
+        const findSongById = (id) => {
+            for (const [index, category] of musicDatabase.entries()) {
+                const song = category.songs.find(s => s.id === id);
+                if (song) return { song, listType: 'category', playlistId: index };
+            }
+            for (const playlist of userPlaylists) {
+                const song = playlist.songs.find(s => s.id === id);
+                if (song) return { song, listType: 'user', playlistId: playlist.id };
+            }
+            return null;
+        };
+        
+        const playNextSong = () => {
+            if (!currentSong.songId) return;
+
+            const getCurrentPlaylist = () => {
+                if (currentSong.listType === 'category' && musicDatabase[currentSong.playlistId]) {
+                    return musicDatabase[currentSong.playlistId].songs;
+                }
+                if (currentSong.listType === 'user') {
+                    const playlist = userPlaylists.find(p => p.id === currentSong.playlistId);
+                    return playlist ? playlist.songs : null;
+                }
+                return null;
+            };
+
+            const playlist = getCurrentPlaylist();
+            if (!playlist || playlist.length < 2) {
+                isPlaying = false;
+                updateAllPlayerControls();
+                return;
+            }
+
+            const currentIndex = playlist.findIndex(song => song.id === currentSong.songId);
+            
+            if (currentIndex > -1 && currentIndex < playlist.length - 1) {
+                const nextSong = playlist[currentIndex + 1];
+                playSong(nextSong.id, currentSong.listType, currentSong.playlistId);
+            } else {
+                isPlaying = false;
+                updateAllPlayerControls();
+            }
+        };
+
+        const playSong = (songId, listType, playlistId) => {
+            const result = findSongById(songId);
+            if (!result) return;
+            
+            const { song } = result;
+            currentSong = { songId, listType, playlistId };
+            npTotalTimeEl.textContent = "0:00"; // Reset total time display for new song
+            audioPlayer.src = song.audioUrl;
+            audioPlayer.play();
+            isPlaying = true;
+            
+            updateAllPlayerUIs(song);
+            updateAllPlayerControls();
+            highlightActiveSong();
+        };
+
+        const togglePlayPause = () => {
+            if (!currentSong.songId) return;
+            isPlaying ? audioPlayer.pause() : audioPlayer.play();
+            isPlaying = !isPlaying;
+            updateAllPlayerControls();
+        };
+
+        const skipTime = (s) => audioPlayer.currentTime += s;
+
+        const updateAllPlayerUIs = (song) => {
+            playerBackground.style.backgroundImage = `url(${song.coverUrl || 'https://iili.io/3DFDCBe.png'})`;
+            [playerSongCover, npCover].forEach(el => el.src = song.coverUrl || 'https://iili.io/3DFDCBe.png');
+            [playerSongTitle, npTitle].forEach(el => el.textContent = song.title);
+            [playerSongArtist, npArtist].forEach(el => el.textContent = song.artist);
+        };
+        
+        const updateAllPlayerControls = () => {
+            const iconClass = isPlaying ? 'fa-pause' : 'fa-play';
+            playPauseBtns.forEach(btn => btn.innerHTML = `<i class="fas ${iconClass}"></i>`);
+            repeatBtns.forEach(btn => btn.classList.toggle('active', isRepeat));
+        };
+
+        const updateProgress = () => {
+            if (isNaN(audioPlayer.duration)) return;
+            
+            const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+            [playerProgressBar, npProgressBar].forEach(el => el.style.width = `${progress}%`);
+            
+            npCurrentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+            npTotalTimeEl.textContent = formatTime(audioPlayer.duration);
+        };
+
+        const setProgress = (e, container) => {
+            if (audioPlayer.duration) {
+                audioPlayer.currentTime = (e.offsetX / container.clientWidth) * audioPlayer.duration;
+            }
+        };
+
+        const highlightActiveSong = () => {
+            document.querySelectorAll('.song-item').forEach(item => {
+                item.classList.toggle('active-song', item.dataset.songId === currentSong.songId);
+            });
+        };
+
+        // --- PLAYLISTS DE USUARIO Y MODALES ---
+        const createPlaylist = () => {
+            const name = newPlaylistNameInput.value.trim();
+            if (name) {
+                userPlaylists.push({ id: `user_${Date.now()}`, name, songs: [] });
+                saveUserPlaylists(); // <-- AÑADIDO: Guardar después de crear
+                renderUserPlaylists();
+                newPlaylistNameInput.value = '';
+                closeModal(createPlaylistModal);
+            } else {
+                alert("Por favor, introduce un nombre.");
+            }
+        };
+
+        const deletePlaylist = (id) => {
+            userPlaylists = userPlaylists.filter(p => p.id !== id);
+            saveUserPlaylists(); // <-- AÑADIDO: Guardar después de eliminar
+            renderUserPlaylists();
+        };
+
+        const addSongToPlaylist = (playlistId) => {
+            if (!songToAdd) return;
+            const playlist = userPlaylists.find(p => p.id === playlistId);
+            if (playlist && !playlist.songs.some(s => s.id === songToAdd.id)) {
+                playlist.songs.push(songToAdd);
+                saveUserPlaylists(); // <-- AÑADIDO: Guardar después de añadir una canción
+                alert(`"${songToAdd.title}" añadido a "${playlist.name}".`);
+            } else {
+                alert(playlist ? "El mix ya está en esta playlist." : "Playlist no encontrada.");
+            }
+            closeModal(addToPlaylistModal);
+        };
+        
+        const removeSongFromPlaylist = (songId, playlistId) => {
+             const playlist = userPlaylists.find(p => p.id === playlistId);
+             if (playlist) {
+                playlist.songs = playlist.songs.filter(s => s.id !== songId);
+                saveUserPlaylists(); // <-- AÑADIDO: Guardar después de quitar una canción
+                if (userPlaylistView.classList.contains('active')) {
+                    renderSongList(userPlaylistSongsListContainer, playlist.songs, 'user', playlist.id);
+                }
+             }
+        };
+        
+        const openModal = (modal) => modal.style.display = 'block';
+        const closeModal = (modal) => modal.style.display = 'none';
+
+        const openDescriptionModal = (song) => {
+            document.getElementById('modal-song-cover').src = song.coverUrl || 'https://iili.io/3DFDCBe.png';
+            document.getElementById('modal-song-title').textContent = song.title;
+            document.getElementById('modal-song-artist').textContent = song.artist;
+            
+            // --- INICIO DE LA MODIFICACIÓN ---
+            const descriptionContainer = document.getElementById('description-text');
+            if (song.description && song.description.trim() !== '') {
+                // Reemplazamos los saltos de línea de texto (\n) con etiquetas de salto de línea HTML (<br>)
+                // para que el tracklist se muestre verticalmente.
+                descriptionContainer.innerHTML = song.description.replace(/\n/g, '<br>');
+            } else {
+                descriptionContainer.innerHTML = '<p></p>';
+            }
+            // --- FIN DE LA MODIFICACIÓN ---
+
+            openModal(descriptionModal);
+        };
+        
+        const openAddToPlaylistModal = (song) => {
+            songToAdd = song;
+            playlistSelectionList.innerHTML = userPlaylists.length > 0 ? '' : '<p>Primero crea una playlist.</p>';
+            userPlaylists.forEach(p => {
+                const item = document.createElement('div');
+                item.className = 'playlist-selection-item';
+                item.textContent = p.name;
+                item.onclick = () => addSongToPlaylist(p.id);
+                playlistSelectionList.appendChild(item);
+            });
+            openModal(addToPlaylistModal);
+        };
+
+        // --- BÚSQUEDA Y HELPERS ---
+        const performSearch = () => {
+            const query = searchInput.value.toLowerCase().trim();
+            if (!query) return goBack();
+            
+            const results = [];
+            const addedIds = new Set();
+            const searchPool = [...musicDatabase, ...userPlaylists];
+
+            searchPool.forEach(playlist => {
+                playlist.songs.forEach(song => {
+                    const searchText = `${song.title} ${song.artist} ${playlist.name}`.toLowerCase();
+                    if (searchText.includes(query) && !addedIds.has(song.id)) {
+                        results.push(song);
+                        addedIds.add(song.id);
+                    }
+                });
+            });
+            showSearchResultsView(results);
+        };
+        
+        const formatTime = (s) => {
+            if (isNaN(s)) return '0:00';
+            const m = Math.floor(s / 60);
+            const sec = Math.floor(s % 60);
+            return `${m}:${sec < 10 ? '0' : ''}${sec}`;
+        };
+
+        // --- SETUP DE EVENT LISTENERS ---
+        function setupEventListeners() {
+            // Controles del reproductor
+            playPauseBtns.forEach(btn => btn.addEventListener('click', togglePlayPause));
+            prevBtns15s.forEach(btn => btn.addEventListener('click', () => skipTime(-15)));
+            nextBtns15s.forEach(btn => btn.addEventListener('click', () => skipTime(15)));
+            repeatBtns.forEach(btn => btn.addEventListener('click', () => {
+                isRepeat = !isRepeat;
+                audioPlayer.loop = isRepeat;
+                updateAllPlayerControls();
+            }));
+
+            audioPlayer.addEventListener('ended', () => {
+                if (isRepeat) {
+                    audioPlayer.currentTime = 0;
+                    audioPlayer.play();
+                } else {
+                    playNextSong();
+                }
+            });
+
+            audioPlayer.addEventListener('timeupdate', updateProgress);
+            audioPlayer.addEventListener('loadedmetadata', updateProgress);
+
+            playerProgressContainer.addEventListener('click', (e) => setProgress(e, playerProgressContainer));
+            npProgressContainer.addEventListener('click', (e) => setProgress(e, npProgressContainer));
+            
+            playerSongInfoContainer.addEventListener('click', () => nowPlayingView.classList.add('active'));
+            npBackButton.addEventListener('click', () => nowPlayingView.classList.remove('active'));
+            
+            document.querySelectorAll('.info-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if(currentSong.songId) {
+                        const { song } = findSongById(currentSong.songId);
+                        if(song) openDescriptionModal(song);
+                    }
+                });
+            });
+
+            // Navegación y Búsqueda
+            navCategoriesBtn.addEventListener('click', () => { switchView(categoriesView); updateNavButtons(navCategoriesBtn); });
+            navMyPlaylistsBtn.addEventListener('click', () => { switchView(myPlaylistsView); updateNavButtons(navMyPlaylistsBtn); });
+            [backToCategoriesBtn, backToMyPlaylistsBtn, backFromSearchBtn].forEach(btn => btn.addEventListener('click', goBack));
+            searchButton.addEventListener('click', () => {
+                if (appHeader.classList.contains('searching')) {
+                    searchInput.value.trim() === '' ? appHeader.classList.remove('searching') : performSearch();
+                } else {
+                    appHeader.classList.add('searching');
+                    searchInput.focus();
+                }
+            });
+            searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
+
+            // Modales y Creación de Playlist
+            closeModalBtns.forEach(btn => btn.addEventListener('click', () => closeModal(document.getElementById(btn.dataset.modal))));
+            window.addEventListener('click', (e) => { if (e.target.classList.contains('modal')) closeModal(e.target); });
+            createPlaylistBtn.addEventListener('click', () => openModal(createPlaylistModal));
+            confirmCreatePlaylistBtn.addEventListener('click', createPlaylist);
+        }
+
+        function addEventListenersToSongItems(container) {
+            container.querySelectorAll('.song-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (e.target.closest('.song-item-controls')) return;
+                    const { songId, listType, playlistId } = e.currentTarget.dataset;
+                    playSong(songId, listType, playlistId);
+                });
+                item.querySelector('.add-to-playlist-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const song = findSongById(item.dataset.songId)?.song;
+                    if (song) openAddToPlaylistModal(song);
+                });
+                const removeBtn = item.querySelector('.remove-from-playlist-btn');
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        if (confirm("¿Quitar este mix de la playlist?")) {
+                           removeSongFromPlaylist(item.dataset.songId, item.dataset.playlistId);
+                        }
+                    });
+                }
+            });
+        }
+
+        // Iniciar la aplicación
+        init();
+    });
+    </script>
+</body>
+</html>
