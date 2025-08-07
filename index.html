@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -734,6 +735,43 @@
          #add-to-playlist-modal .playlist-selection-item:hover {
              background-color: rgba(255,255,255,0.1);
          }
+        
+        /* AÑADIDO POR IA: Estilos para la notificación de Deshacer */
+        .undo-container {
+            position: fixed;
+            bottom: 140px; /* Justo encima del reproductor */
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: var(--text-color);
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1100;
+            opacity: 0;
+            transition: opacity 0.3s ease, transform 0.3s ease, bottom 0.3s ease;
+            pointer-events: none;
+        }
+
+        .undo-container.show {
+            opacity: 1;
+            transform: translate(-50%, -10px); /* Moverla un poco hacia arriba al mostrar */
+            pointer-events: auto;
+        }
+
+        .undo-container button {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-left: 15px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
     </style>
 </head>
 <body>
@@ -775,6 +813,11 @@
                     <button class="action-button" id="create-playlist-btn"><i class="fas fa-plus"></i> Crear Nueva Playlist</button>
                 </div>
                 <div id="user-playlists-list"></div>
+                <!-- AÑADIDO POR IA: Contenedor para la notificación de Deshacer -->
+                <div id="undo-container" class="undo-container">
+                    <span>Playlist eliminada.</span>
+                    <button id="undo-delete-btn">Deshacer</button>
+                </div>
             </div>
             
             <!-- VISTA DE UNA PLAYLIST DE USUARIO -->
@@ -1346,6 +1389,8 @@ Salsa
 
 
 
+
+
                { id: 'FullMixesd01', title: "", artist: "", duration: "", audioUrl: '', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
                     
 
@@ -1791,17 +1836,25 @@ Salsa
         const newPlaylistNameInput = document.getElementById('new-playlist-name');
         const playlistSelectionList = document.getElementById('playlist-selection-list');
 
+        // AÑADIDO POR IA: Elementos para la funcionalidad de Deshacer
+        const undoContainer = document.getElementById('undo-container');
+        const undoDeleteBtn = document.getElementById('undo-delete-btn');
+
         // --- ESTADO DE LA APLICACIÓN ---
         let currentSong = { listType: null, playlistId: null, songId: null };
         let isPlaying = false;
         let isRepeat = false;
-        let userPlaylists = []; // <-- Se inicializa vacío, pero se llenará desde localStorage
+        let userPlaylists = []; 
         let songToAdd = null;
         let viewHistory = [categoriesView];
+        
+        // AÑADIDO POR IA: Variables para la funcionalidad de Deshacer
+        let lastDeletedPlaylist = null; 
+        let undoTimeout = null;
 
         // --- INICIALIZACIÓN ---
         const init = () => {
-            loadUserPlaylists(); // <-- AÑADIDO: Cargar playlists al iniciar
+            loadUserPlaylists();
             renderCategories();
             renderUserPlaylists();
             setupEventListeners();
@@ -1809,18 +1862,13 @@ Salsa
         };
 
         // --- FUNCIONES PARA GUARDAR Y CARGAR DESDE LOCALSTORAGE ---
-
-        // <-- AÑADIDO: Guarda el array userPlaylists en localStorage
         const saveUserPlaylists = () => {
-            // localStorage solo guarda texto, así que convertimos el array de objetos a un string JSON
             localStorage.setItem('userPlaylists', JSON.stringify(userPlaylists));
         };
 
-        // <-- AÑADIDO: Carga las playlists desde localStorage al iniciar la app
         const loadUserPlaylists = () => {
             const storedPlaylists = localStorage.getItem('userPlaylists');
             if (storedPlaylists) {
-                // Si encontramos datos, los convertimos de string JSON de vuelta a un array de objetos
                 userPlaylists = JSON.parse(storedPlaylists);
             }
         };
@@ -1829,7 +1877,7 @@ Salsa
         const renderCategories = () => {
             categoriesGrid.innerHTML = '';
             musicDatabase.forEach((playlist, index) => {
-                if (playlist.songs.length === 0) return; // No mostrar categorías vacías
+                if (playlist.songs.length === 0) return; 
                 const el = document.createElement('div');
                 el.className = 'category-item';
                 el.dataset.playlistIdx = index;
@@ -1870,9 +1918,11 @@ Salsa
                 el.innerHTML = `<div class="playlist-list-item-info"><i class="fas fa-record-vinyl"></i><span class="playlist-list-item-name">${playlist.name}</span></div><button class="delete-playlist-btn" title="Eliminar playlist"><i class="fas fa-trash-alt"></i></button>`;
                 userPlaylistsListContainer.appendChild(el);
                 el.querySelector('.playlist-list-item-info').addEventListener('click', () => showUserPlaylistView(playlist.id));
+                
+                // MODIFICADO POR IA: Se elimina el confirm()
                 el.querySelector('.delete-playlist-btn').addEventListener('click', (e) => {
                     e.stopPropagation();
-                    if (confirm(`¿Eliminar la playlist "${playlist.name}"?`)) deletePlaylist(playlist.id);
+                    deletePlaylist(playlist.id); // Llamada directa a la función de eliminar
                 });
             });
         };
@@ -1968,7 +2018,7 @@ Salsa
             
             const { song } = result;
             currentSong = { songId, listType, playlistId };
-            npTotalTimeEl.textContent = "0:00"; // Reset total time display for new song
+            npTotalTimeEl.textContent = "0:00";
             audioPlayer.src = song.audioUrl;
             audioPlayer.play();
             isPlaying = true;
@@ -2027,7 +2077,7 @@ Salsa
             const name = newPlaylistNameInput.value.trim();
             if (name) {
                 userPlaylists.push({ id: `user_${Date.now()}`, name, songs: [] });
-                saveUserPlaylists(); // <-- AÑADIDO: Guardar después de crear
+                saveUserPlaylists();
                 renderUserPlaylists();
                 newPlaylistNameInput.value = '';
                 closeModal(createPlaylistModal);
@@ -2035,11 +2085,24 @@ Salsa
                 alert("Por favor, introduce un nombre.");
             }
         };
-
+        
+        // MODIFICADO POR IA: Lógica de eliminación y guardado para "Deshacer"
         const deletePlaylist = (id) => {
-            userPlaylists = userPlaylists.filter(p => p.id !== id);
-            saveUserPlaylists(); // <-- AÑADIDO: Guardar después de eliminar
+            if (undoTimeout) clearTimeout(undoTimeout);
+
+            const playlistIndex = userPlaylists.findIndex(p => p.id === id);
+            if (playlistIndex === -1) return;
+
+            lastDeletedPlaylist = {
+                playlist: { ...userPlaylists[playlistIndex] },
+                index: playlistIndex
+            };
+
+            userPlaylists.splice(playlistIndex, 1);
+            
+            saveUserPlaylists();
             renderUserPlaylists();
+            showUndoNotification();
         };
 
         const addSongToPlaylist = (playlistId) => {
@@ -2047,7 +2110,7 @@ Salsa
             const playlist = userPlaylists.find(p => p.id === playlistId);
             if (playlist && !playlist.songs.some(s => s.id === songToAdd.id)) {
                 playlist.songs.push(songToAdd);
-                saveUserPlaylists(); // <-- AÑADIDO: Guardar después de añadir una canción
+                saveUserPlaylists();
                 alert(`"${songToAdd.title}" añadido a "${playlist.name}".`);
             } else {
                 alert(playlist ? "El mix ya está en esta playlist." : "Playlist no encontrada.");
@@ -2059,7 +2122,7 @@ Salsa
              const playlist = userPlaylists.find(p => p.id === playlistId);
              if (playlist) {
                 playlist.songs = playlist.songs.filter(s => s.id !== songId);
-                saveUserPlaylists(); // <-- AÑADIDO: Guardar después de quitar una canción
+                saveUserPlaylists();
                 if (userPlaylistView.classList.contains('active')) {
                     renderSongList(userPlaylistSongsListContainer, playlist.songs, 'user', playlist.id);
                 }
@@ -2074,17 +2137,12 @@ Salsa
             document.getElementById('modal-song-title').textContent = song.title;
             document.getElementById('modal-song-artist').textContent = song.artist;
             
-            // --- INICIO DE LA MODIFICACIÓN ---
             const descriptionContainer = document.getElementById('description-text');
             if (song.description && song.description.trim() !== '') {
-                // Reemplazamos los saltos de línea de texto (\n) con etiquetas de salto de línea HTML (<br>)
-                // para que el tracklist se muestre verticalmente.
                 descriptionContainer.innerHTML = song.description.replace(/\n/g, '<br>');
             } else {
                 descriptionContainer.innerHTML = '<p></p>';
             }
-            // --- FIN DE LA MODIFICACIÓN ---
-
             openModal(descriptionModal);
         };
         
@@ -2101,6 +2159,32 @@ Salsa
             openModal(addToPlaylistModal);
         };
 
+        // --- FUNCIONES PARA DESHACER --- AÑADIDO POR IA
+        const showUndoNotification = () => {
+            undoContainer.classList.add('show');
+            undoTimeout = setTimeout(() => {
+                hideUndoNotification();
+            }, 7000); // 7 segundos
+        };
+
+        const hideUndoNotification = () => {
+            undoContainer.classList.remove('show');
+            lastDeletedPlaylist = null; // Limpiar datos para que no se pueda deshacer después
+            if (undoTimeout) {
+                clearTimeout(undoTimeout);
+                undoTimeout = null;
+            }
+        };
+
+        const undoDeletePlaylist = () => {
+            if (lastDeletedPlaylist) {
+                userPlaylists.splice(lastDeletedPlaylist.index, 0, lastDeletedPlaylist.playlist);
+                saveUserPlaylists();
+                renderUserPlaylists();
+                hideUndoNotification();
+            }
+        };
+        
         // --- BÚSQUEDA Y HELPERS ---
         const performSearch = () => {
             const query = searchInput.value.toLowerCase().trim();
@@ -2187,6 +2271,9 @@ Salsa
             window.addEventListener('click', (e) => { if (e.target.classList.contains('modal')) closeModal(e.target); });
             createPlaylistBtn.addEventListener('click', () => openModal(createPlaylistModal));
             confirmCreatePlaylistBtn.addEventListener('click', createPlaylist);
+            
+            // AÑADIDO POR IA: Event listener para el botón Deshacer
+            undoDeleteBtn.addEventListener('click', undoDeletePlaylist);
         }
 
         function addEventListenersToSongItems(container) {
