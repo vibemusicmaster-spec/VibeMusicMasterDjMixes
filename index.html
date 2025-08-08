@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -736,7 +735,7 @@
              background-color: rgba(255,255,255,0.1);
          }
         
-        /* AÑADIDO POR IA: Estilos para la notificación de Deshacer */
+        /* Estilos para la notificación de Deshacer */
         .undo-container {
             position: fixed;
             bottom: 140px; /* Justo encima del reproductor */
@@ -762,16 +761,18 @@
             pointer-events: auto;
         }
 
+        .undo-container span {
+            margin-right: 15px;
+        }
+        
         .undo-container button {
             background: none;
             border: none;
             color: var(--primary-color);
             font-weight: bold;
-            margin-left: 15px;
             cursor: pointer;
             font-size: 14px;
         }
-
     </style>
 </head>
 <body>
@@ -813,11 +814,6 @@
                     <button class="action-button" id="create-playlist-btn"><i class="fas fa-plus"></i> Crear Nueva Playlist</button>
                 </div>
                 <div id="user-playlists-list"></div>
-                <!-- AÑADIDO POR IA: Contenedor para la notificación de Deshacer -->
-                <div id="undo-container" class="undo-container">
-                    <span>Playlist eliminada.</span>
-                    <button id="undo-delete-btn">Deshacer</button>
-                </div>
             </div>
             
             <!-- VISTA DE UNA PLAYLIST DE USUARIO -->
@@ -835,6 +831,12 @@
             </div>
 
         </main>
+
+        <!-- Contenedor para la notificación de Deshacer (movido fuera de 'main' para estar siempre disponible) -->
+        <div id="undo-container" class="undo-container">
+            <span id="undo-message">Playlist eliminada.</span>
+            <button id="undo-delete-btn">Deshacer</button>
+        </div>
         
         <!-- INICIO: Interfaz de Reproducción (Now Playing) -->
         <div id="now-playing-view">
@@ -1102,7 +1104,7 @@ Salsa
                     { id: 'NewMixes02', title: "Clean Reggaeton Mix 2025", artist: "Dj Machado Flow", duration: "23:00", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/e9b2ba8a-a94d-4048-8db5-79b099da398d/audio/861f46f4-9dab-4e81-8d43-52e7d2018aef/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},
                     { id: 'NewMixes03', title: "MAMBO DE CALLE ACELERAO OMEGA VS SUJETO", artist: "Dj Master Nj", duration: "22:05", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/fec2906a-0a33-4f51-83d8-77e5533e4ac7/audio/cebdd6e6-0fda-4b0a-9055-77ba3a68a176/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FoUVsix.md.jpg', description: ""},
                     { id: 'NewMixes04', title: "Bachata Mix", artist: "Dj Axelcito", duration: "13:42", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/2f2660a6-8789-4526-b9b7-7cce5b54dce4/audio/9bf987a5-3df7-430a-961d-316cfd65f05f/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FoCWqqF.jpg', description: ""},
-                    { id: 'NewMixes05', title: "Dembow Mix", artist: "DJ Johmar El Rey", duration: "30:26", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/3e75ffa5-a292-4830-9244-032d4190788d/audio/5d11d397-d4f2-4410-b6fe-33d93497bfb9/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnTi4qJ.md.jpg', description: ""},
+                    { id: 'NewMixes05', title: "Dembow Mix", artist: "DJ Johmar El Rey", duration: "30:26", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/3e75ffa5-a292-4830-9244-032d4190788d/audio/5d11d397-d4f2-4410-b6fe-33d93497bfb9/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnTi4qJ.jpg', description: ""},
                     { id: 'NewMixes06', title: "Reggaeton Mix 31 (Dirty) 2025", artist: "Dj Trepasito Rd", duration: "17:30", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/7a210956-3fa8-49a6-a65b-4908231ea322/audio/2e2838f0-2c93-43f4-97fe-c76954a66fb2/default_tc.mp3?nocache', coverUrl: 'https://iili.io/F75X3pS.md.png', description: ""},
                     { id: 'NewMixes07', title: "Bad Bunny - DeBÍ TiRAR MáS FOToS - Album Mix 2025", artist: "Dj Johmar El Rey", duration: "51:52", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/f5f5eb41-582e-46a2-94e3-0ecb963e2b5b/audio/dab3e7b0-2453-4a56-9ae2-3795ffc1147c/default_tc.mp3?nocache', coverUrl: 'https://iili.io/FnaS6Be.png', description: ""},
 { id: 'NewMixes08', title: "Salsa Mix", artist: "Dj Machado Flow", duration: "34:42", audioUrl: 'https://cdn.simplecast.com/audio/5bf9ee28-7cc8-4395-abaa-a360c42db152/episodes/02c59331-a30e-42fa-8017-4a7c8b94935e/audio/00e55f49-cfe0-4dc3-9e72-4c885b168334/default_tc.mp3?nocache', coverUrl: 'https://iili.io/Fn5M3W7.md.png', description: ""},
@@ -1836,8 +1838,9 @@ Salsa
         const newPlaylistNameInput = document.getElementById('new-playlist-name');
         const playlistSelectionList = document.getElementById('playlist-selection-list');
 
-        // AÑADIDO POR IA: Elementos para la funcionalidad de Deshacer
+        // Elementos para la funcionalidad de Deshacer
         const undoContainer = document.getElementById('undo-container');
+        const undoMessage = document.getElementById('undo-message');
         const undoDeleteBtn = document.getElementById('undo-delete-btn');
 
         // --- ESTADO DE LA APLICACIÓN ---
@@ -1848,8 +1851,9 @@ Salsa
         let songToAdd = null;
         let viewHistory = [categoriesView];
         
-        // AÑADIDO POR IA: Variables para la funcionalidad de Deshacer
+        // Variables para la funcionalidad de Deshacer
         let lastDeletedPlaylist = null; 
+        let lastDeletedSongInfo = null; // NUEVO: para deshacer eliminación de canción
         let undoTimeout = null;
 
         // --- INICIALIZACIÓN ---
@@ -1918,11 +1922,9 @@ Salsa
                 el.innerHTML = `<div class="playlist-list-item-info"><i class="fas fa-record-vinyl"></i><span class="playlist-list-item-name">${playlist.name}</span></div><button class="delete-playlist-btn" title="Eliminar playlist"><i class="fas fa-trash-alt"></i></button>`;
                 userPlaylistsListContainer.appendChild(el);
                 el.querySelector('.playlist-list-item-info').addEventListener('click', () => showUserPlaylistView(playlist.id));
-                
-                // MODIFICADO POR IA: Se elimina el confirm()
                 el.querySelector('.delete-playlist-btn').addEventListener('click', (e) => {
                     e.stopPropagation();
-                    deletePlaylist(playlist.id); // Llamada directa a la función de eliminar
+                    deletePlaylist(playlist.id); 
                 });
             });
         };
@@ -2086,9 +2088,8 @@ Salsa
             }
         };
         
-        // MODIFICADO POR IA: Lógica de eliminación y guardado para "Deshacer"
         const deletePlaylist = (id) => {
-            if (undoTimeout) clearTimeout(undoTimeout);
+            clearPendingUndo(); // Limpia cualquier otra acción de deshacer pendiente
 
             const playlistIndex = userPlaylists.findIndex(p => p.id === id);
             if (playlistIndex === -1) return;
@@ -2097,12 +2098,11 @@ Salsa
                 playlist: { ...userPlaylists[playlistIndex] },
                 index: playlistIndex
             };
-
-            userPlaylists.splice(playlistIndex, 1);
             
+            userPlaylists.splice(playlistIndex, 1);
             saveUserPlaylists();
             renderUserPlaylists();
-            showUndoNotification();
+            showUndoNotification('Playlist eliminada.');
         };
 
         const addSongToPlaylist = (playlistId) => {
@@ -2118,15 +2118,34 @@ Salsa
             closeModal(addToPlaylistModal);
         };
         
+        // ¡FUNCIÓN MODIFICADA!
         const removeSongFromPlaylist = (songId, playlistId) => {
+             clearPendingUndo(); // Limpia cualquier otra acción de deshacer pendiente
+
              const playlist = userPlaylists.find(p => p.id === playlistId);
-             if (playlist) {
-                playlist.songs = playlist.songs.filter(s => s.id !== songId);
-                saveUserPlaylists();
-                if (userPlaylistView.classList.contains('active')) {
-                    renderSongList(userPlaylistSongsListContainer, playlist.songs, 'user', playlist.id);
-                }
+             if (!playlist) return;
+
+             const songIndex = playlist.songs.findIndex(s => s.id === songId);
+             if (songIndex === -1) return;
+
+             // Guardar información para deshacer
+             lastDeletedSongInfo = {
+                 song: { ...playlist.songs[songIndex] },
+                 playlistId: playlistId,
+                 index: songIndex
+             };
+
+             // Eliminar la canción
+             playlist.songs.splice(songIndex, 1);
+             saveUserPlaylists();
+             
+             // Re-renderizar la vista actual de la playlist
+             if (userPlaylistView.classList.contains('active')) {
+                renderSongList(userPlaylistSongsListContainer, playlist.songs, 'user', playlist.id);
              }
+
+             // Mostrar notificación para deshacer
+             showUndoNotification("Mix eliminado.");
         };
         
         const openModal = (modal) => modal.style.display = 'block';
@@ -2159,8 +2178,9 @@ Salsa
             openModal(addToPlaylistModal);
         };
 
-        // --- FUNCIONES PARA DESHACER --- AÑADIDO POR IA
-        const showUndoNotification = () => {
+        // --- FUNCIONES PARA DESHACER ---
+        const showUndoNotification = (messageText) => {
+            undoMessage.textContent = messageText;
             undoContainer.classList.add('show');
             undoTimeout = setTimeout(() => {
                 hideUndoNotification();
@@ -2169,20 +2189,40 @@ Salsa
 
         const hideUndoNotification = () => {
             undoContainer.classList.remove('show');
-            lastDeletedPlaylist = null; // Limpiar datos para que no se pueda deshacer después
-            if (undoTimeout) {
+            clearPendingUndo(true); // Limpiar datos para que no se pueda deshacer después
+        };
+        
+        const clearPendingUndo = (isTimeout = false) => {
+            if (isTimeout && undoTimeout) { // Si es el timeout el que llama, no necesita limpiarse a sí mismo
+                 undoTimeout = null;
+            } else if (undoTimeout) { // Si es otra acción, limpia el timeout pendiente
                 clearTimeout(undoTimeout);
                 undoTimeout = null;
             }
-        };
+            lastDeletedPlaylist = null;
+            lastDeletedSongInfo = null;
+        }
 
-        const undoDeletePlaylist = () => {
-            if (lastDeletedPlaylist) {
+        const handleUndo = () => {
+            if (lastDeletedSongInfo) {
+                // Deshacer eliminación de canción
+                const { song, playlistId, index } = lastDeletedSongInfo;
+                const playlist = userPlaylists.find(p => p.id === playlistId);
+                if(playlist) {
+                    playlist.songs.splice(index, 0, song);
+                    saveUserPlaylists();
+                    // Actualizar la vista si sigue siendo la misma
+                    if (userPlaylistView.classList.contains('active') && userPlaylistTitleEl.textContent === playlist.name) {
+                        renderSongList(userPlaylistSongsListContainer, playlist.songs, 'user', playlist.id);
+                    }
+                }
+            } else if (lastDeletedPlaylist) {
+                // Deshacer eliminación de playlist
                 userPlaylists.splice(lastDeletedPlaylist.index, 0, lastDeletedPlaylist.playlist);
                 saveUserPlaylists();
                 renderUserPlaylists();
-                hideUndoNotification();
             }
+            hideUndoNotification();
         };
         
         // --- BÚSQUEDA Y HELPERS ---
@@ -2272,10 +2312,11 @@ Salsa
             createPlaylistBtn.addEventListener('click', () => openModal(createPlaylistModal));
             confirmCreatePlaylistBtn.addEventListener('click', createPlaylist);
             
-            // AÑADIDO POR IA: Event listener para el botón Deshacer
-            undoDeleteBtn.addEventListener('click', undoDeletePlaylist);
+            // Event listener para el botón Deshacer
+            undoDeleteBtn.addEventListener('click', handleUndo);
         }
-
+        
+        // ¡FUNCIÓN MODIFICADA!
         function addEventListenersToSongItems(container) {
             container.querySelectorAll('.song-item').forEach(item => {
                 item.addEventListener('click', (e) => {
@@ -2292,9 +2333,8 @@ Salsa
                 if (removeBtn) {
                     removeBtn.addEventListener('click', (e) => {
                         e.stopPropagation();
-                        if (confirm("¿Quitar este mix de la playlist?")) {
-                           removeSongFromPlaylist(item.dataset.songId, item.dataset.playlistId);
-                        }
+                        // Se quita la confirmación y se llama directamente a la función de eliminar
+                        removeSongFromPlaylist(item.dataset.songId, item.dataset.playlistId);
                     });
                 }
             });
